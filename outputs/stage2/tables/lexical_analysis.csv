@@ -1,0 +1,41 @@
+label_name,token,count_in_label,count_in_other_label,doc_frequency_pct,rate_per_10k_tokens,log_odds_pcl_vs_no_pcl
+No PCL,anti,131,0,1.385,7.22,-3.374
+No PCL,fund,62,0,0.699,3.417,-2.634
+No PCL,released,56,0,0.712,3.086,-2.534
+No PCL,increase,102,1,1.306,5.621,-2.432
+No PCL,illegal,354,6,4.208,19.51,-2.417
+No PCL,serious,47,0,0.62,2.59,-2.362
+No PCL,hopelessly,187,3,2.454,10.306,-2.341
+No PCL,arrived,46,0,0.607,2.535,-2.341
+No PCL,demand,45,0,0.567,2.48,-2.319
+No PCL,list,87,1,1.082,4.795,-2.275
+No PCL,election,86,1,1.016,4.74,-2.264
+No PCL,reported,86,1,1.095,4.74,-2.264
+No PCL,announced,42,0,0.541,2.315,-2.252
+No PCL,influx,42,0,0.554,2.315,-2.252
+No PCL,issued,42,0,0.554,2.315,-2.252
+No PCL,latest,42,0,0.554,2.315,-2.252
+No PCL,park,42,0,0.501,2.315,-2.252
+No PCL,august,41,0,0.528,2.26,-2.229
+No PCL,council,82,1,1.016,4.519,-2.217
+No PCL,friday,82,1,1.082,4.519,-2.217
+PCL,darkness,6,0,0.63,2.984,3.455
+PCL,dole,6,1,0.504,2.984,2.762
+PCL,teresa,6,1,0.504,2.984,2.762
+PCL,hungry,22,8,2.771,10.942,2.447
+PCL,christmas,25,10,2.897,12.434,2.369
+PCL,compassion,8,3,1.008,3.979,2.32
+PCL,blessings,5,2,0.63,2.487,2.202
+PCL,donate,17,9,2.141,8.455,2.097
+PCL,destitute,11,6,1.134,5.471,2.048
+PCL,compassionate,4,2,0.504,1.989,2.02
+PCL,ladder,4,2,0.126,1.989,2.02
+PCL,producer,4,2,0.504,1.989,2.02
+PCL,shell,4,2,0.378,1.989,2.02
+PCL,token,4,2,0.252,1.989,2.02
+PCL,touched,4,2,0.504,1.989,2.02
+PCL,christ,7,4,0.756,3.482,1.979
+PCL,hearts,10,6,1.259,4.974,1.961
+PCL,beg,5,3,0.63,2.487,1.915
+PCL,fortunate,5,3,0.63,2.487,1.915
+PCL,sight,5,3,0.504,2.487,1.915
