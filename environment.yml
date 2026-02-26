@@ -1,0 +1,10 @@
+name: nlp-research-lifecycle
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pandas>=2.2
+  - matplotlib>=3.8
+  - seaborn>=0.13
+  - requests>=2.32
