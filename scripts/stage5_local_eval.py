@@ -283,8 +283,55 @@ def main() -> None:
 
     ablation_source = Path(args.ablation_summary).resolve()
     copied_ablation_path = tables_dir / "ablation_summary.csv"
+    method_validity_md = ""
+    failure_analysis_md = ""
     if ablation_source.exists():
         shutil.copyfile(ablation_source, copied_ablation_path)
+        ablation_df = pd.read_csv(copied_ablation_path)
+        if "dev_f1" in ablation_df.columns:
+            table_cols = [
+                col
+                for col in [
+                    "run_id",
+                    "model",
+                    "loss",
+                    "lex_drop",
+                    "dev_f1",
+                    "dev_precision",
+                    "dev_recall",
+                    "dev_prob_std",
+                    "degenerate_run",
+                    "degenerate_reason",
+                ]
+                if col in ablation_df.columns
+            ]
+            if table_cols:
+                method_validity_path = tables_dir / "method_validity_table.csv"
+                ablation_df[table_cols].sort_values("dev_f1", ascending=False).to_csv(
+                    method_validity_path, index=False
+                )
+                method_validity_md = (
+                    "\n## Method Validity\n\n"
+                    "- Summary table: `tables/method_validity_table.csv`\n"
+                )
+                deg_mask = pd.Series(False, index=ablation_df.index)
+                if "degenerate_run" in ablation_df.columns:
+                    deg_mask = deg_mask | ablation_df["degenerate_run"].fillna(False).astype(bool)
+                if "dev_prob_std" in ablation_df.columns:
+                    deg_mask = deg_mask | (ablation_df["dev_prob_std"].fillna(0.0) < 0.01)
+                if "dev_f1" in ablation_df.columns:
+                    deg_mask = deg_mask | (ablation_df["dev_f1"].fillna(0.0) < 0.4)
+                deg_df = ablation_df[deg_mask].copy()
+                if not deg_df.empty:
+                    collapse_path = tables_dir / "deberta_collapse_candidates.csv"
+                    selected_cols = [col for col in table_cols if col in deg_df.columns]
+                    deg_df[selected_cols].to_csv(collapse_path, index=False)
+                    failure_analysis_md = (
+                        "\n## Failure Analysis\n\n"
+                        "- Potentially degenerate runs: `tables/deberta_collapse_candidates.csv`\n"
+                        "- Typical indicators: low `dev_f1`, near-constant probabilities (`dev_prob_std`),"
+                        " and extreme positive prediction rate.\n"
+                    )
 
     markdown_path = out_dir / "stage5_local_eval.md"
     markdown = f"""# Stage 5.2 Local Evaluation
@@ -318,6 +365,10 @@ def main() -> None:
 """
     if ablation_source.exists():
         markdown += "- Ablation summary copy: `tables/ablation_summary.csv`\n"
+    if method_validity_md:
+        markdown += method_validity_md
+    if failure_analysis_md:
+        markdown += failure_analysis_md
     if baseline_note:
         markdown += f"- Baseline comparison note: {baseline_note}\n"
 

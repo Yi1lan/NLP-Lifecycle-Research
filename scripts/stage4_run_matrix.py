@@ -48,6 +48,10 @@ def _train_and_predict(
     epochs: int,
     skip_existing: bool,
     dry_run: bool,
+    lr: float | None = None,
+    class_weight_scale: float = 1.0,
+    force_fast_tokenizer: bool = False,
+    force_slow_tokenizer: bool = False,
 ) -> dict:
     run_dir = out_root / "runs" / run_id
     probs_dir = out_root / "probs"
@@ -92,6 +96,14 @@ def _train_and_predict(
         "--epochs",
         str(epochs),
     ]
+    if lr is not None:
+        train_cmd.extend(["--lr", str(lr)])
+    if class_weight_scale != 1.0:
+        train_cmd.extend(["--class-weight-scale", str(class_weight_scale)])
+    if force_fast_tokenizer:
+        train_cmd.append("--force-fast-tokenizer")
+    if force_slow_tokenizer:
+        train_cmd.append("--force-slow-tokenizer")
     _run(train_cmd, dry_run=dry_run)
 
     for split, output_path in [("dev", dev_probs), ("test", test_probs)]:
@@ -282,6 +294,10 @@ def main() -> None:
                 "dev_precision",
                 "dev_recall",
                 "threshold",
+                "dev_prob_std",
+                "dev_positive_rate_at_best_threshold",
+                "degenerate_run",
+                "degenerate_reason",
                 "is_final_submission_candidate",
             ],
         )
@@ -300,6 +316,12 @@ def main() -> None:
                     "dev_precision": metrics["precision"],
                     "dev_recall": metrics["recall"],
                     "threshold": metrics["threshold"],
+                    "dev_prob_std": summary.get("dev_prob_std"),
+                    "dev_positive_rate_at_best_threshold": summary.get(
+                        "dev_positive_rate_at_best_threshold"
+                    ),
+                    "degenerate_run": summary.get("degenerate_run"),
+                    "degenerate_reason": summary.get("degenerate_reason"),
                     "is_final_submission_candidate": item["run_id"] in final_run_ids,
                 }
             )
@@ -318,6 +340,10 @@ def main() -> None:
                 "dev_precision": metrics["precision"],
                 "dev_recall": metrics["recall"],
                 "threshold": metrics["threshold"],
+                "dev_prob_std": None,
+                "dev_positive_rate_at_best_threshold": None,
+                "degenerate_run": False,
+                "degenerate_reason": None,
                 "is_final_submission_candidate": True,
             }
         )
@@ -330,6 +356,7 @@ def main() -> None:
         "final_run_ids": final_run_ids,
         "ablation_summary_csv": str(ablation_csv_path),
         "final_ensemble_summary_json": str(final_ensemble_dir / "ensemble_summary.json"),
+        "selected_runs_manifest_json": str(final_ensemble_dir / "selected_runs.json"),
     }
     (out_root / "run_matrix_summary.json").write_text(
         json.dumps(matrix_summary, indent=2), encoding="utf-8"
@@ -340,4 +367,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

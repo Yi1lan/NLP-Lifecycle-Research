@@ -1,0 +1,38 @@
+{
+  "method_name": "Impact-Aware Robust Fine-Tuning (IARF)",
+  "primary_submission_family": "roberta-based",
+  "secondary_family": "deberta attempted and retained for failure analysis",
+  "task": "SemEval-2022 Task 4 Subtask 1 (binary PCL detection)",
+  "backbones": [
+    "roberta-base",
+    "microsoft/deberta-v3-base"
+  ],
+  "default_training": {
+    "epochs": 4,
+    "warmup_ratio": 0.1,
+    "weight_decay": 0.01,
+    "focal_gamma": 2.0,
+    "seeds": [
+      42,
+      2024
+    ],
+    "max_len_selection_rule": "choose 192 if (f1_256 - f1_192) <= 0.005 else 256",
+    "lexical_dropout": {
+      "enabled": true,
+      "positive_only": true,
+      "drop_prob": 0.2
+    }
+  },
+  "run_health_criteria": {
+    "min_dev_f1": 0.4,
+    "min_dev_prob_std": 0.01,
+    "min_positive_rate": 0.02,
+    "max_positive_rate": 0.6
+  },
+  "decision_notes": [
+    "Use positive-class F1 as primary metric.",
+    "Exclude degenerate runs from ensemble based on run health criteria.",
+    "If DeBERTa remains degenerate after diagnosis, submit RoBERTa-only ensemble."
+  ]
+}
+

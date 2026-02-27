@@ -16,6 +16,10 @@ from torch.utils.data import Dataset
 
 from .augment import apply_lexical_dropout, load_trigger_tokens
 from .config import (
+    DEFAULT_MAX_POSITIVE_RATE,
+    DEFAULT_MIN_DEV_F1,
+    DEFAULT_MIN_DEV_PROB_STD,
+    DEFAULT_MIN_POSITIVE_RATE,
     THRESHOLD_END,
     THRESHOLD_START,
     THRESHOLD_STEP,
@@ -176,6 +180,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lex-drop-prob", type=float, default=0.2)
     parser.add_argument("--lexical-csv", type=str, default="outputs/stage2/tables/lexical_analysis.csv")
     parser.add_argument("--lex-drop-positive-only", type=str, default="true")
+    parser.add_argument("--class-weight-scale", type=float, default=1.0)
+    parser.add_argument("--force-fast-tokenizer", action="store_true")
+    parser.add_argument("--force-slow-tokenizer", action="store_true")
 
     parser.add_argument("--max-train-samples", type=int, default=None)
     parser.add_argument("--max-dev-samples", type=int, default=None)
@@ -188,6 +195,10 @@ def main() -> None:
     args = parse_args()
     lex_drop_enabled = parse_bool(args.lex_drop)
     lex_drop_positive_only = parse_bool(args.lex_drop_positive_only)
+    if args.force_fast_tokenizer and args.force_slow_tokenizer:
+        raise ValueError("`--force-fast-tokenizer` and `--force-slow-tokenizer` are mutually exclusive.")
+    if args.class_weight_scale <= 0:
+        raise ValueError("`--class-weight-scale` must be > 0.")
 
     model_spec = get_model_spec(args.model)
     learning_rate = args.lr if args.lr is not None else model_spec.lr
@@ -228,7 +239,12 @@ def main() -> None:
     AutoModelForSequenceClassification, _, Trainer, TrainingArguments = (
         _load_transformers()
     )
-    tokenizer = _load_tokenizer(model_spec.name, use_slow_tokenizer=model_spec.use_slow_tokenizer)
+    use_slow_tokenizer = model_spec.use_slow_tokenizer
+    if args.force_fast_tokenizer:
+        use_slow_tokenizer = False
+    if args.force_slow_tokenizer:
+        use_slow_tokenizer = True
+    tokenizer = _load_tokenizer(model_spec.name, use_slow_tokenizer=use_slow_tokenizer)
     model = AutoModelForSequenceClassification.from_pretrained(model_spec.name, num_labels=2)
 
     train_encodings = tokenizer(
@@ -277,7 +293,7 @@ def main() -> None:
         end=THRESHOLD_END,
         step=THRESHOLD_STEP,
     )
-    class_weights = compute_balanced_class_weights(train_labels)
+    class_weights = compute_balanced_class_weights(train_labels) * float(args.class_weight_scale)
     if args.loss == "focal":
         focal_trainer_cls = _make_focal_trainer_class(Trainer)
         trainer = focal_trainer_cls(
@@ -312,6 +328,29 @@ def main() -> None:
         labels=np.asarray(dev_labels, dtype=np.int64),
         threshold=best_metrics.threshold,
     )
+    dev_prob_std = float(np.std(dev_probs))
+    dev_positive_rate_at_best_threshold = float(
+        np.mean((dev_probs >= best_metrics.threshold).astype(np.float64))
+    )
+    degeneracy_reasons: list[str] = []
+    if dev_metric_details.f1 < DEFAULT_MIN_DEV_F1:
+        degeneracy_reasons.append(
+            f"dev_f1<{DEFAULT_MIN_DEV_F1:.2f} ({dev_metric_details.f1:.4f})"
+        )
+    if dev_prob_std < DEFAULT_MIN_DEV_PROB_STD:
+        degeneracy_reasons.append(
+            f"dev_prob_std<{DEFAULT_MIN_DEV_PROB_STD:.2f} ({dev_prob_std:.6f})"
+        )
+    if dev_positive_rate_at_best_threshold < DEFAULT_MIN_POSITIVE_RATE:
+        degeneracy_reasons.append(
+            f"positive_rate<{DEFAULT_MIN_POSITIVE_RATE:.2f} ({dev_positive_rate_at_best_threshold:.4f})"
+        )
+    if dev_positive_rate_at_best_threshold > DEFAULT_MAX_POSITIVE_RATE:
+        degeneracy_reasons.append(
+            f"positive_rate>{DEFAULT_MAX_POSITIVE_RATE:.2f} ({dev_positive_rate_at_best_threshold:.4f})"
+        )
+    degenerate_run = len(degeneracy_reasons) > 0
+    degenerate_reason = "; ".join(degeneracy_reasons) if degenerate_run else None
 
     # Save a stable, single model directory for the prediction script.
     model_dir.mkdir(parents=True, exist_ok=True)
@@ -341,6 +380,8 @@ def main() -> None:
         "warmup_ratio": args.warmup_ratio,
         "weight_decay": args.weight_decay,
         "focal_gamma": args.focal_gamma,
+        "class_weight_scale": args.class_weight_scale,
+        "tokenizer_mode": "slow" if use_slow_tokenizer else "fast",
         "class_weights": class_weights.tolist(),
         "train_size": len(train_examples),
         "dev_size": len(dev_examples),
@@ -350,6 +391,16 @@ def main() -> None:
         "dev_order_hash": dev_order_hash(data_bundle),
         "test_order_hash": test_order_hash(data_bundle),
         "dev_metrics": dev_metric_details.to_dict(),
+        "dev_prob_std": dev_prob_std,
+        "dev_positive_rate_at_best_threshold": dev_positive_rate_at_best_threshold,
+        "degenerate_run": degenerate_run,
+        "degenerate_reason": degenerate_reason,
+        "health_criteria": {
+            "min_dev_f1": DEFAULT_MIN_DEV_F1,
+            "min_dev_prob_std": DEFAULT_MIN_DEV_PROB_STD,
+            "min_positive_rate": DEFAULT_MIN_POSITIVE_RATE,
+            "max_positive_rate": DEFAULT_MAX_POSITIVE_RATE,
+        },
         "best_checkpoint": trainer.state.best_model_checkpoint,
         "paths": {
             "run_dir": str(run_dir),
@@ -374,6 +425,10 @@ def main() -> None:
                 "dev_precision": round(dev_metric_details.precision, 6),
                 "dev_recall": round(dev_metric_details.recall, 6),
                 "threshold": round(dev_metric_details.threshold, 6),
+                "dev_prob_std": round(dev_prob_std, 6),
+                "dev_positive_rate": round(dev_positive_rate_at_best_threshold, 6),
+                "degenerate_run": degenerate_run,
+                "degenerate_reason": degenerate_reason,
             },
             indent=2,
         )

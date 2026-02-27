@@ -63,9 +63,11 @@ python scripts/stage2_pipeline.py
 Stage 3-5 implementation is in `src/stage3/` and the orchestration scripts:
 
 - `scripts/stage4_run_matrix.py`
+- `scripts/stage4_deberta_diagnosis.py`
 - `scripts/stage5_make_submission.py`
 - `scripts/stage5_validate_submission.py`
 - `scripts/stage5_local_eval.py`
+- Submission package: `BestModel/`
 
 ### Run Stage 4 Matrix (training + probs + ensemble)
 
@@ -93,7 +95,21 @@ Key outputs:
 - Per-run checkpoints/metadata: `outputs/stage4/runs/`
 - Per-run probabilities: `outputs/stage4/probs/`
 - Final ensemble summary + `dev.txt`/`test.txt`: `outputs/stage4/final_ensemble/`
+- Run-selection manifest (health-filter based): `outputs/stage4/final_ensemble/selected_runs.json`
 - Ablation table: `outputs/stage4/ablation_summary.csv`
+
+### Focused DeBERTa Diagnosis Matrix (for failure analysis)
+
+```bash
+python3 scripts/stage4_deberta_diagnosis.py \
+  --data-dir data/raw \
+  --out-root outputs/stage4/deberta_diagnosis \
+  --promote-best-two \
+  --include-weight-half
+```
+
+This runs a compact diagnosis matrix across CE/focal, lexical-drop toggles, tokenizer mode,
+learning-rate adjustment, and class-weight scaling.
 
 ### Create Stage 5 Submission Files
 
@@ -132,3 +148,9 @@ python3 scripts/stage5_local_eval.py \
 Report-ready markdown is generated at:
 
 - `outputs/stage5/local_eval/stage5_local_eval.md`
+
+## Spec-facing Checklist
+
+- `BestModel/` present with train/predict/ensemble entrypoints
+- Root `dev.txt` and `test.txt` present (0/1 per line)
+- Submission copies under `outputs/stage5/submission/`

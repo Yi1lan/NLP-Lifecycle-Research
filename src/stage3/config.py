@@ -64,6 +64,10 @@ BASELINE_TEST_F1 = 0.49
 THRESHOLD_START = 0.05
 THRESHOLD_END = 0.95
 THRESHOLD_STEP = 0.005
+DEFAULT_MIN_DEV_F1 = 0.40
+DEFAULT_MIN_DEV_PROB_STD = 0.01
+DEFAULT_MIN_POSITIVE_RATE = 0.02
+DEFAULT_MAX_POSITIVE_RATE = 0.60
 
 
 def parse_bool(value: str | bool) -> bool:
@@ -86,4 +90,3 @@ def get_model_spec(model_key: str) -> ModelSpec:
         supported = ", ".join(sorted(MODELS))
         raise KeyError(f"Unsupported model '{model_key}'. Supported: {supported}")
     return MODELS[model_key]
-
