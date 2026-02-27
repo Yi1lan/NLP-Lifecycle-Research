@@ -1,0 +1,71 @@
+{
+  "model_key": "deberta",
+  "model_name": "microsoft/deberta-v3-base",
+  "seed": 42,
+  "max_len": 192,
+  "loss": "focal",
+  "lex_drop": true,
+  "lex_drop_positive_only": true,
+  "lex_drop_prob": 0.2,
+  "trigger_tokens": [
+    "darkness",
+    "dole",
+    "teresa",
+    "hungry",
+    "christmas",
+    "compassion",
+    "blessings",
+    "donate",
+    "destitute",
+    "compassionate",
+    "ladder",
+    "producer",
+    "shell",
+    "token",
+    "touched",
+    "christ",
+    "hearts",
+    "beg",
+    "fortunate",
+    "sight"
+  ],
+  "epochs": 4,
+  "batch_size": 24,
+  "learning_rate": 1.8e-05,
+  "warmup_ratio": 0.1,
+  "weight_decay": 0.01,
+  "focal_gamma": 2.0,
+  "class_weights": [
+    0.5523677468299866,
+    5.273929595947266
+  ],
+  "train_size": 8375,
+  "dev_size": 2093,
+  "test_size": 3832,
+  "train_missing_ids": [],
+  "dev_missing_ids": [
+    "8640"
+  ],
+  "dev_order_hash": "7301b13ee1352258668724786c33fa22017b63d71748c62a59f758b8df3e1cbd",
+  "test_order_hash": "4d1229588a04a5b6a84f3f4c4f8d526e2d2e1ea94c8dec5db48312c02603403d",
+  "dev_metrics": {
+    "threshold": 0.05,
+    "precision": 0.09507883420926899,
+    "recall": 1.0,
+    "f1": 0.1736474694589878,
+    "tp": 199,
+    "tn": 0,
+    "fp": 1894,
+    "fn": 0
+  },
+  "best_checkpoint": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42/checkpoints/checkpoint-349",
+  "paths": {
+    "run_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42",
+    "checkpoint_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42/checkpoints",
+    "model_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42/model",
+    "dev_probs_npy": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42/dev_probs.npy",
+    "dev_labels_npy": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42/dev_labels.npy",
+    "dev_preds_npy": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42/dev_preds.npy",
+    "dev_preds_txt": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42/dev_preds.txt"
+  }
+}
