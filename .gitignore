@@ -212,3 +212,7 @@ __marimo__/
 # Coursework outputs
 data/raw/
 data/processed/
+
+.DS_Store
+*.ipynb
+nlp_coursework-master/
