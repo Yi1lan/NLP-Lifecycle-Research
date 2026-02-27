@@ -76,6 +76,18 @@ python3 scripts/stage4_run_matrix.py \
   --skip-existing
 ```
 
+If running DeBERTa-v3 and tokenizer loading reports missing backend deps, install:
+
+```bash
+python -m pip install -U protobuf
+```
+
+Some `transformers` builds may also require:
+
+```bash
+python -m pip install -U tiktoken
+```
+
 Key outputs:
 
 - Per-run checkpoints/metadata: `outputs/stage4/runs/`

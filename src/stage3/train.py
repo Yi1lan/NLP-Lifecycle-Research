@@ -81,6 +81,22 @@ def _load_transformers() -> tuple:
     return AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments
 
 
+def _load_tokenizer(model_name: str, use_slow_tokenizer: bool):
+    _, AutoTokenizer, _, _ = _load_transformers()
+    try:
+        return AutoTokenizer.from_pretrained(model_name, use_fast=not use_slow_tokenizer)
+    except (ImportError, ValueError) as exc:
+        message = str(exc).lower()
+        if use_slow_tokenizer and ("protobuf" in message or "tiktoken" in message):
+            raise RuntimeError(
+                "Tokenizer dependencies are missing for DeBERTa-v3. "
+                "Install protobuf in the active env, then rerun. "
+                "If your transformers build still requests TikToken fallback, "
+                "also install tiktoken."
+            ) from exc
+        raise
+
+
 def _build_compute_metrics(
     start: float,
     end: float,
@@ -209,13 +225,10 @@ def main() -> None:
             seed=args.seed,
         )
 
-    AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments = (
+    AutoModelForSequenceClassification, _, Trainer, TrainingArguments = (
         _load_transformers()
     )
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_spec.name,
-        use_fast=not model_spec.use_slow_tokenizer,
-    )
+    tokenizer = _load_tokenizer(model_spec.name, use_slow_tokenizer=model_spec.use_slow_tokenizer)
     model = AutoModelForSequenceClassification.from_pretrained(model_spec.name, num_labels=2)
 
     train_encodings = tokenizer(
@@ -369,4 +382,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

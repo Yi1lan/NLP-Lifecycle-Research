@@ -48,6 +48,22 @@ def _load_transformers() -> tuple:
     return AutoModelForSequenceClassification, AutoTokenizer
 
 
+def _load_tokenizer(checkpoint_path: Path):
+    _, AutoTokenizer = _load_transformers()
+    try:
+        return AutoTokenizer.from_pretrained(checkpoint_path)
+    except (ImportError, ValueError) as exc:
+        message = str(exc).lower()
+        if "protobuf" in message or "tiktoken" in message:
+            raise RuntimeError(
+                "Tokenizer dependencies are missing for DeBERTa-v3 checkpoint loading. "
+                "Install protobuf in the active env, then rerun. "
+                "If your transformers build still requests TikToken fallback, "
+                "also install tiktoken."
+            ) from exc
+        raise
+
+        
 def _resolve_checkpoint_path(checkpoint_arg: str | Path) -> Path:
     path = Path(checkpoint_arg).expanduser().resolve()
     if not path.exists():
@@ -129,8 +145,8 @@ def main() -> None:
     if max_len is None:
         max_len = 256
 
-    AutoModelForSequenceClassification, AutoTokenizer = _load_transformers()
-    tokenizer = AutoTokenizer.from_pretrained(checkpoint_path)
+    AutoModelForSequenceClassification, _ = _load_transformers()
+    tokenizer = _load_tokenizer(checkpoint_path)
     model = AutoModelForSequenceClassification.from_pretrained(checkpoint_path, num_labels=2)
 
     device = torch.device(
@@ -164,7 +180,9 @@ def main() -> None:
             use_amp = device.type == "cuda"
             with torch.autocast("cuda", dtype=torch.bfloat16, enabled=use_amp):
                 outputs = model(**batch)
-            probs = _softmax_positive(outputs.logits.detach().cpu().numpy())
+            # NumPy cannot represent bfloat16 directly; cast before conversion.
+            logits = outputs.logits.detach().float().cpu().numpy()
+            probs = _softmax_positive(logits)
             all_probs.append(probs)
     merged = np.concatenate(all_probs) if all_probs else np.asarray([], dtype=np.float64)
     np.save(out_probs, merged)
