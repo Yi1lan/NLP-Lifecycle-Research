@@ -1,0 +1,31 @@
+{
+  "criteria": {
+    "min_dev_f1": 0.4,
+    "min_dev_prob_std": 0.01,
+    "min_positive_rate": 0.02,
+    "max_positive_rate": 0.6,
+    "disable_health_filtering": false
+  },
+  "n_runs_total": 15,
+  "n_runs_selected": 10,
+  "selected_run_ids": [
+    "roberta_large_seed123",
+    "roberta_large_seed2024",
+    "roberta_large_seed3407",
+    "roberta_large_seed42",
+    "roberta_large_seed777",
+    "roberta_seed123",
+    "roberta_seed2024",
+    "roberta_seed3407",
+    "roberta_seed42",
+    "roberta_seed777"
+  ],
+  "excluded_run_ids": [
+    "deberta_seed123",
+    "deberta_seed2024",
+    "deberta_seed3407",
+    "deberta_seed42",
+    "deberta_seed777"
+  ],
+  "source": "outputs/stage4/final_ensemble/selected_runs.json"
+}

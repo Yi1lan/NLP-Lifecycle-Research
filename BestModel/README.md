@@ -1,61 +1,99 @@
-# BestModel (Coursework Submission Package)
+# BestModel
 
-This folder contains the submission-facing entrypoints for the final Stage 3-5 pipeline.
+This folder contains the **full proposal pipeline** used for the final result, not just a single best checkpoint.
 
-## Files
+Final dev result from this pipeline:
 
-- `train.py`: wraps `src.stage3.train`
-- `predict.py`: wraps `src.stage3.predict`
-- `ensemble.py`: wraps `src.stage3.ensemble`
-- `config.json`: pinned method choices and health-filter criteria
+- Positive-class F1: `0.64`
+- Precision: `0.6368`
+- Recall: `0.6432`
+- Ensemble threshold: `0.47`
 
-## Recommended Reproduction Flow
+## What is included
 
-Run from repo root.
+- Full training/inference/ensemble modules:
+  - `train.py` (single run training)
+  - `predict.py` (single run probability inference)
+  - `ensemble.py` (health-filtered multi-run ensemble)
+- Full pipeline runner:
+  - `run_pipeline.py` (Stage 4 matrix + final ensemble generation)
+- Submission utilities:
+  - `make_submission.py`
+  - `validate_submission.py`
+- Shared helpers:
+  - `augment.py`, `config.py`, `data.py`, `losses.py`, `submission.py`
+- Reference outputs from the final ensemble:
+  - `ensemble_summary.json`
+  - `selected_runs.json`
+  - `run_matrix_summary.json`
+  - `dev.txt`, `test.txt`
+
+## Storage note
+
+Large model checkpoints are kept in `outputs/stage4/runs/` and are **not copied** into `BestModel`.
+
+## Run the full proposal pipeline
+
+Run from repository root:
 
 ```bash
-python3 scripts/stage4_run_matrix.py \
+python3 -m BestModel.run_pipeline \
   --data-dir data/raw \
   --out-root outputs/stage4 \
   --seeds 42,123,2024,3407,777 \
   --skip-existing
 ```
 
+## Materialize and validate submission files
+
 ```bash
-python3 scripts/stage5_make_submission.py \
+python3 -m BestModel.make_submission \
   --ensemble-dir outputs/stage4/final_ensemble \
   --out-dir outputs/stage5/submission \
   --data-dir data/raw
 ```
 
 ```bash
-python3 scripts/stage5_local_eval.py \
+python3 -m BestModel.validate_submission \
+  --dev outputs/stage5/submission/dev.txt \
+  --test outputs/stage5/submission/test.txt \
   --data-dir data/raw \
-  --ensemble-summary outputs/stage4/final_ensemble/ensemble_summary.json \
-  --out-dir outputs/stage5/local_eval
+  --ensemble-summary outputs/stage4/final_ensemble/ensemble_summary.json
 ```
 
-## Focused DeBERTa Diagnosis (for report failure analysis)
+## Component-level usage
+
+Single run training:
 
 ```bash
-python3 scripts/stage4_deberta_diagnosis.py \
+python3 -m BestModel.train \
+  --model roberta_large \
+  --seed 777 \
+  --max-len 192 \
+  --loss ce \
+  --lex-drop false \
   --data-dir data/raw \
-  --out-root outputs/stage4/deberta_diagnosis \
-  --promote-best-two \
-  --include-weight-half
+  --out-dir outputs/stage4/runs/roberta_large_seed777
 ```
 
-Outputs:
+Single run inference:
 
-- `outputs/stage4/deberta_diagnosis/diagnosis_summary.csv`
-- `outputs/stage4/deberta_diagnosis/diagnosis_manifest.json`
-- `outputs/stage4/model_seed_statistics.csv` (max/mean/std per model family)
-- `outputs/stage4/best_model/best_model_summary.json` (best model + best seed)
+```bash
+python3 -m BestModel.predict \
+  --checkpoint outputs/stage4/runs/roberta_large_seed777 \
+  --split dev \
+  --data-dir data/raw \
+  --out-probs outputs/stage4/probs/roberta_large_seed777_dev.npy \
+  --out-labels outputs/stage4/dev_labels.npy \
+  --max-len 192
+```
 
-Default matrix families include:
+Ensemble from multiple runs:
 
-- `b0_roberta` (RoBERTa-base CE)
-- `b1_roberta` (RoBERTa-base focal)
-- `roberta` (RoBERTa-base focal + lexical dropout)
-- `roberta_large` (RoBERTa-large CE)
-- `deberta` (DeBERTa-v3-base focal + lexical dropout)
+```bash
+python3 -m BestModel.ensemble \
+  --dev-probs "outputs/stage4/probs/*_dev.npy" \
+  --test-probs "outputs/stage4/probs/*_test.npy" \
+  --dev-labels outputs/stage4/dev_labels.npy \
+  --out-dir outputs/stage4/final_ensemble
+```

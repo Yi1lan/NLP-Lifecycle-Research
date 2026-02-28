@@ -1,2 +1,1 @@
-"""Submission-ready entrypoints for the final Stage 3-5 pipeline."""
-
+"""Self-contained package for the final ensemble pipeline and submission flow."""

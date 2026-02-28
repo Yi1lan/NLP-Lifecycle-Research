@@ -1,0 +1,59 @@
+{
+  "data_dir": "data/raw",
+  "out_root": "outputs/stage4",
+  "selected_max_len": 192,
+  "seeds": [
+    42,
+    123,
+    2024,
+    3407,
+    777
+  ],
+  "run_variants": [
+    {
+      "variant_id": "b0_roberta",
+      "model_family": "b0_roberta",
+      "model": "roberta",
+      "loss": "ce",
+      "lex_drop": false,
+      "include_in_ensemble": false
+    },
+    {
+      "variant_id": "b1_roberta",
+      "model_family": "b1_roberta",
+      "model": "roberta",
+      "loss": "focal",
+      "lex_drop": false,
+      "include_in_ensemble": false
+    },
+    {
+      "variant_id": "roberta",
+      "model_family": "roberta_base",
+      "model": "roberta",
+      "loss": "focal",
+      "lex_drop": true,
+      "include_in_ensemble": true
+    },
+    {
+      "variant_id": "roberta_large",
+      "model_family": "roberta_large",
+      "model": "roberta_large",
+      "loss": "ce",
+      "lex_drop": false,
+      "include_in_ensemble": true
+    },
+    {
+      "variant_id": "deberta",
+      "model_family": "deberta_base",
+      "model": "deberta",
+      "loss": "focal",
+      "lex_drop": true,
+      "include_in_ensemble": true
+    }
+  ],
+  "all_run_count": 25,
+  "ensemble_run_count": 15,
+  "final_ensemble_summary": "BestModel/ensemble_summary.json",
+  "selected_runs_manifest": "BestModel/selected_runs.json",
+  "source": "outputs/stage4/run_matrix_summary.json"
+}

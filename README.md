@@ -14,14 +14,26 @@ This section provides direct access to the primary artifacts used for academic r
 - Submission copy (`outputs/stage5/submission/test.txt`): [`outputs/stage5/submission/test.txt`](./outputs/stage5/submission/test.txt)
 - Submission validation report: [`outputs/stage5/submission/validation_report.json`](./outputs/stage5/submission/validation_report.json)
 
-### BestModel package (for submission entrypoints/settings)
+### BestModel package (full proposal pipeline)
 
 - BestModel folder: [`BestModel/`](./BestModel)
-- BestModel entrypoint (`train`): [`BestModel/train.py`](./BestModel/train.py)
-- BestModel entrypoint (`predict`): [`BestModel/predict.py`](./BestModel/predict.py)
-- BestModel entrypoint (`ensemble`): [`BestModel/ensemble.py`](./BestModel/ensemble.py)
+- Stage 4 pipeline runner (matrix + final ensemble): [`BestModel/run_pipeline.py`](./BestModel/run_pipeline.py)
+- Core model entrypoints (`train` / `predict` / `ensemble`):
+  [`BestModel/train.py`](./BestModel/train.py),
+  [`BestModel/predict.py`](./BestModel/predict.py),
+  [`BestModel/ensemble.py`](./BestModel/ensemble.py)
+- Submission materialization + validation:
+  [`BestModel/make_submission.py`](./BestModel/make_submission.py),
+  [`BestModel/validate_submission.py`](./BestModel/validate_submission.py)
 - BestModel setting file: [`BestModel/config.json`](./BestModel/config.json)
 - BestModel package note: [`BestModel/README.md`](./BestModel/README.md)
+- In-package ensemble artifacts:
+  [`BestModel/ensemble_summary.json`](./BestModel/ensemble_summary.json),
+  [`BestModel/selected_runs.json`](./BestModel/selected_runs.json),
+  [`BestModel/run_matrix_summary.json`](./BestModel/run_matrix_summary.json),
+  [`BestModel/dev.txt`](./BestModel/dev.txt),
+  [`BestModel/test.txt`](./BestModel/test.txt)
+- Checkpoint storage note: large model checkpoints are stored under `outputs/stage4/runs/` and are not duplicated inside `BestModel`.
 
 ### Best model and ensemble JSON artifacts
 
