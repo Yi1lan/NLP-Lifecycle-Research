@@ -1,0 +1,322 @@
+{
+  "criteria": {
+    "min_dev_f1": 0.4,
+    "min_dev_prob_std": 0.01,
+    "min_positive_rate": 0.02,
+    "max_positive_rate": 0.6,
+    "disable_health_filtering": false
+  },
+  "n_runs_total": 15,
+  "n_runs_selected": 10,
+  "selected_run_ids": [
+    "roberta_large_seed123",
+    "roberta_large_seed2024",
+    "roberta_large_seed3407",
+    "roberta_large_seed42",
+    "roberta_large_seed777",
+    "roberta_seed123",
+    "roberta_seed2024",
+    "roberta_seed3407",
+    "roberta_seed42",
+    "roberta_seed777"
+  ],
+  "excluded_run_ids": [
+    "deberta_seed123",
+    "deberta_seed2024",
+    "deberta_seed3407",
+    "deberta_seed42",
+    "deberta_seed777"
+  ],
+  "runs": [
+    {
+      "run_id": "deberta_seed123",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed123_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed123_test.npy",
+      "include": false,
+      "exclusion_reasons": [
+        "dev_f1<0.40",
+        "dev_prob_std<0.01",
+        "positive_rate>0.60"
+      ],
+      "run_health": {
+        "best_threshold": 0.05,
+        "dev_f1": 0.1736474694589878,
+        "dev_precision": 0.09507883420926899,
+        "dev_recall": 1.0,
+        "dev_prob_std": 9.111280869489275e-06,
+        "dev_positive_rate_at_best_threshold": 1.0
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed123/run_summary.json",
+      "reported_degenerate_run": true,
+      "reported_degenerate_reason": "dev_f1<0.40 (0.1736); dev_prob_std<0.01 (0.000027); positive_rate>0.60 (1.0000)"
+    },
+    {
+      "run_id": "deberta_seed2024",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed2024_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed2024_test.npy",
+      "include": false,
+      "exclusion_reasons": [
+        "dev_f1<0.40",
+        "dev_prob_std<0.01",
+        "positive_rate>0.60"
+      ],
+      "run_health": {
+        "best_threshold": 0.05,
+        "dev_f1": 0.1736474694589878,
+        "dev_precision": 0.09507883420926899,
+        "dev_recall": 1.0,
+        "dev_prob_std": 0.0,
+        "dev_positive_rate_at_best_threshold": 1.0
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed2024/run_summary.json",
+      "reported_degenerate_run": true,
+      "reported_degenerate_reason": "dev_f1<0.40 (0.1759); dev_prob_std<0.01 (0.000026); positive_rate>0.60 (0.9861)"
+    },
+    {
+      "run_id": "deberta_seed3407",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed3407_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed3407_test.npy",
+      "include": false,
+      "exclusion_reasons": [
+        "dev_f1<0.40",
+        "dev_prob_std<0.01",
+        "positive_rate>0.60"
+      ],
+      "run_health": {
+        "best_threshold": 0.05,
+        "dev_f1": 0.1736474694589878,
+        "dev_precision": 0.09507883420926899,
+        "dev_recall": 1.0,
+        "dev_prob_std": 0.0,
+        "dev_positive_rate_at_best_threshold": 1.0
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed3407/run_summary.json",
+      "reported_degenerate_run": true,
+      "reported_degenerate_reason": "dev_f1<0.40 (0.1736); dev_prob_std<0.01 (0.000030); positive_rate>0.60 (1.0000)"
+    },
+    {
+      "run_id": "deberta_seed42",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed42_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed42_test.npy",
+      "include": false,
+      "exclusion_reasons": [
+        "dev_f1<0.40",
+        "dev_prob_std<0.01",
+        "positive_rate>0.60"
+      ],
+      "run_health": {
+        "best_threshold": 0.05,
+        "dev_f1": 0.1736474694589878,
+        "dev_precision": 0.09507883420926899,
+        "dev_recall": 1.0,
+        "dev_prob_std": 0.00018436143280249766,
+        "dev_positive_rate_at_best_threshold": 1.0
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed42/run_summary.json",
+      "reported_degenerate_run": true,
+      "reported_degenerate_reason": "dev_f1<0.40 (0.1736); dev_prob_std<0.01 (0.000185); positive_rate>0.60 (1.0000)"
+    },
+    {
+      "run_id": "deberta_seed777",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed777_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/deberta_seed777_test.npy",
+      "include": false,
+      "exclusion_reasons": [
+        "dev_f1<0.40",
+        "dev_prob_std<0.01",
+        "positive_rate>0.60"
+      ],
+      "run_health": {
+        "best_threshold": 0.05,
+        "dev_f1": 0.1736474694589878,
+        "dev_precision": 0.09507883420926899,
+        "dev_recall": 1.0,
+        "dev_prob_std": 0.0,
+        "dev_positive_rate_at_best_threshold": 1.0
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/deberta_seed777/run_summary.json",
+      "reported_degenerate_run": true,
+      "reported_degenerate_reason": "dev_f1<0.40 (0.1736); dev_prob_std<0.01 (0.000000); positive_rate>0.60 (1.0000)"
+    },
+    {
+      "run_id": "roberta_large_seed123",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed123_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed123_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.055,
+        "dev_f1": 0.5944700460829493,
+        "dev_precision": 0.548936170212766,
+        "dev_recall": 0.6482412060301508,
+        "dev_prob_std": 0.26066211035568904,
+        "dev_positive_rate_at_best_threshold": 0.11227902532250358
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_large_seed123/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_large_seed2024",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed2024_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed2024_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.08000000000000002,
+        "dev_f1": 0.5808219178082192,
+        "dev_precision": 0.6385542168674698,
+        "dev_recall": 0.5326633165829145,
+        "dev_prob_std": 0.10966770538809784,
+        "dev_positive_rate_at_best_threshold": 0.07931199235547062
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_large_seed2024/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_large_seed3407",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed3407_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed3407_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.12500000000000006,
+        "dev_f1": 0.6101694915254238,
+        "dev_precision": 0.6967741935483871,
+        "dev_recall": 0.542713567839196,
+        "dev_prob_std": 0.231716796075559,
+        "dev_positive_rate_at_best_threshold": 0.0740563784042045
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_large_seed3407/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_large_seed42",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed42_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed42_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.05,
+        "dev_f1": 0.5816326530612246,
+        "dev_precision": 0.5906735751295337,
+        "dev_recall": 0.5728643216080402,
+        "dev_prob_std": 0.2589783922186091,
+        "dev_positive_rate_at_best_threshold": 0.09221213569039656
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_large_seed42/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_large_seed777",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed777_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_large_seed777_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.20500000000000013,
+        "dev_f1": 0.6288659793814433,
+        "dev_precision": 0.6455026455026455,
+        "dev_recall": 0.6130653266331658,
+        "dev_prob_std": 0.2684219904927044,
+        "dev_positive_rate_at_best_threshold": 0.0903010033444816
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_large_seed777/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_seed123",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed123_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed123_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.5450000000000004,
+        "dev_f1": 0.6210045662100456,
+        "dev_precision": 0.5690376569037657,
+        "dev_recall": 0.6834170854271356,
+        "dev_prob_std": 0.25655382120083703,
+        "dev_positive_rate_at_best_threshold": 0.11419015766841854
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_seed2024",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed2024_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed2024_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.6050000000000004,
+        "dev_f1": 0.6170678336980305,
+        "dev_precision": 0.5465116279069767,
+        "dev_recall": 0.7085427135678392,
+        "dev_prob_std": 0.2652164905476187,
+        "dev_positive_rate_at_best_threshold": 0.12326803631151458
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed2024/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_seed3407",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed3407_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed3407_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.7650000000000006,
+        "dev_f1": 0.6134663341645885,
+        "dev_precision": 0.6089108910891089,
+        "dev_recall": 0.6180904522613065,
+        "dev_prob_std": 0.27121187944806807,
+        "dev_positive_rate_at_best_threshold": 0.0965121834687052
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed3407/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_seed42",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed42_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed42_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.6750000000000005,
+        "dev_f1": 0.6219239373601789,
+        "dev_precision": 0.5604838709677419,
+        "dev_recall": 0.6984924623115578,
+        "dev_prob_std": 0.2748100207881533,
+        "dev_positive_rate_at_best_threshold": 0.11849020544672718
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed42/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    },
+    {
+      "run_id": "roberta_seed777",
+      "dev_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed777_dev.npy",
+      "test_prob_file": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/probs/roberta_seed777_test.npy",
+      "include": true,
+      "exclusion_reasons": [],
+      "run_health": {
+        "best_threshold": 0.8500000000000006,
+        "dev_f1": 0.6018518518518517,
+        "dev_precision": 0.5579399141630901,
+        "dev_recall": 0.6532663316582915,
+        "dev_prob_std": 0.264930984625968,
+        "dev_positive_rate_at_best_threshold": 0.11132345914954611
+      },
+      "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed777/run_summary.json",
+      "reported_degenerate_run": false,
+      "reported_degenerate_reason": null
+    }
+  ]
+}

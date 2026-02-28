@@ -1,0 +1,6 @@
+run_id,model,loss,lex_drop,dev_f1,dev_precision,dev_recall,dev_prob_std,degenerate_run,degenerate_reason
+deberta_seed42,deberta,focal,True,0.1736474694589878,0.0950788342092689,1.0,0.0001854156720129,True,dev_f1<0.40 (0.1736); dev_prob_std<0.01 (0.000185); positive_rate>0.60 (1.0000)
+deberta_seed123,deberta,focal,True,0.1736474694589878,0.0950788342092689,1.0,2.7278706380100556e-05,True,dev_f1<0.40 (0.1736); dev_prob_std<0.01 (0.000027); positive_rate>0.60 (1.0000)
+deberta_seed2024,deberta,focal,True,0.1758727353071144,0.0964147286821705,1.0,2.6137753498587493e-05,True,dev_f1<0.40 (0.1759); dev_prob_std<0.01 (0.000026); positive_rate>0.60 (0.9861)
+deberta_seed3407,deberta,focal,True,0.1736474694589878,0.0950788342092689,1.0,2.962810991401504e-05,True,dev_f1<0.40 (0.1736); dev_prob_std<0.01 (0.000030); positive_rate>0.60 (1.0000)
+deberta_seed777,deberta,focal,True,0.1736474694589878,0.0950788342092689,1.0,2.220446049250313e-16,True,dev_f1<0.40 (0.1736); dev_prob_std<0.01 (0.000000); positive_rate>0.60 (1.0000)

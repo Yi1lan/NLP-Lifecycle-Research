@@ -1,0 +1,19 @@
+{
+  "source_ensemble_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/final_ensemble",
+  "dev_txt": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage5/submission/dev.txt",
+  "test_txt": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage5/submission/test.txt",
+  "root_dev_txt": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/dev.txt",
+  "root_test_txt": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/test.txt",
+  "dev_metrics": {
+    "threshold": 0.47000000000000036,
+    "precision": 0.6368159203980099,
+    "recall": 0.6432160804020101,
+    "f1": 0.64,
+    "tp": 128,
+    "tn": 1821,
+    "fp": 73,
+    "fn": 71
+  },
+  "baseline_dev_f1": 0.48,
+  "beats_baseline_dev": true
+}

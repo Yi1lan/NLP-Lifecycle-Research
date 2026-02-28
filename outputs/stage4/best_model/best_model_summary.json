@@ -1,0 +1,19 @@
+{
+  "best_run_id": "roberta_large_seed777",
+  "model_family": "roberta_large",
+  "model": "roberta_large",
+  "seed": 777,
+  "loss": "ce",
+  "lex_drop": false,
+  "dev_f1": 0.6288659793814433,
+  "dev_precision": 0.6455026455026455,
+  "dev_recall": 0.6130653266331658,
+  "threshold": 0.20500000000000013,
+  "degenerate_run": false,
+  "degenerate_reason": null,
+  "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_large_seed777/run_summary.json",
+  "dev_txt_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/best_model/dev.txt",
+  "test_txt_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/best_model/test.txt",
+  "test_positive_predictions": 320,
+  "test_count": 3832
+}

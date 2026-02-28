@@ -57,3 +57,112 @@ python scripts/stage2_pipeline.py
 
 - This stage only implements data and EDA workflows.
 - No training is performed in Stage 2.
+
+## Stage 3-5 Pipeline (IARF)
+
+Stage 3-5 implementation is in `src/stage3/` and the orchestration scripts:
+
+- `scripts/stage4_run_matrix.py`
+- `scripts/stage4_deberta_diagnosis.py`
+- `scripts/stage5_make_submission.py`
+- `scripts/stage5_validate_submission.py`
+- `scripts/stage5_local_eval.py`
+- Submission package: `BestModel/`
+
+### Run Stage 4 Matrix (training + probs + ensemble)
+
+```bash
+python3 scripts/stage4_run_matrix.py \
+  --data-dir data/raw \
+  --out-root outputs/stage4 \
+  --seeds 42,123,2024,3407,777 \
+  --skip-existing
+```
+
+If running DeBERTa-v3 and tokenizer loading reports missing backend deps, install:
+
+```bash
+python -m pip install -U protobuf
+```
+
+Some `transformers` builds may also require:
+
+```bash
+python -m pip install -U tiktoken
+```
+
+Key outputs:
+
+- Per-run checkpoints/metadata: `outputs/stage4/runs/`
+- Per-run probabilities: `outputs/stage4/probs/`
+- Final ensemble summary + `dev.txt`/`test.txt`: `outputs/stage4/final_ensemble/`
+- Run-selection manifest (health-filter based): `outputs/stage4/final_ensemble/selected_runs.json`
+- Run-level ablation table: `outputs/stage4/ablation_summary.csv`
+- Per-model seed statistics (max/mean/std): `outputs/stage4/model_seed_statistics.csv`
+- Best model (highest dev F1 over all runs): `outputs/stage4/best_model/best_model_summary.json`
+- Best-model predictions: `outputs/stage4/best_model/dev.txt`, `outputs/stage4/best_model/test.txt`
+
+Current default comparison families in the matrix:
+
+- `b0_roberta` (RoBERTa-base CE)
+- `b1_roberta` (RoBERTa-base focal)
+- `roberta` (RoBERTa-base focal + lexical dropout)
+- `roberta_large` (RoBERTa-large CE)
+- `deberta` (DeBERTa-v3-base focal + lexical dropout)
+
+### Focused DeBERTa Diagnosis Matrix (for failure analysis)
+
+```bash
+python3 scripts/stage4_deberta_diagnosis.py \
+  --data-dir data/raw \
+  --out-root outputs/stage4/deberta_diagnosis \
+  --promote-best-two \
+  --include-weight-half
+```
+
+This runs a compact diagnosis matrix across CE/focal, lexical-drop toggles, tokenizer mode,
+learning-rate adjustment, and class-weight scaling.
+
+### Create Stage 5 Submission Files
+
+```bash
+python3 scripts/stage5_make_submission.py \
+  --ensemble-dir outputs/stage4/final_ensemble \
+  --out-dir outputs/stage5/submission \
+  --data-dir data/raw
+```
+
+This writes:
+
+- `outputs/stage5/submission/dev.txt`
+- `outputs/stage5/submission/test.txt`
+- Root-level `dev.txt` and `test.txt` for GTA visibility
+
+### Validate Submission Format
+
+```bash
+python3 scripts/stage5_validate_submission.py \
+  --dev outputs/stage5/submission/dev.txt \
+  --test outputs/stage5/submission/test.txt \
+  --data-dir data/raw \
+  --ensemble-summary outputs/stage4/final_ensemble/ensemble_summary.json
+```
+
+### Generate Stage 5.2 Local Evaluation Package
+
+```bash
+python3 scripts/stage5_local_eval.py \
+  --data-dir data/raw \
+  --ensemble-summary outputs/stage4/final_ensemble/ensemble_summary.json \
+  --out-dir outputs/stage5/local_eval
+```
+
+Report-ready markdown is generated at:
+
+- `outputs/stage5/local_eval/stage5_local_eval.md`
+
+## Spec-facing Checklist
+
+- `BestModel/` present with train/predict/ensemble entrypoints
+- Root `dev.txt` and `test.txt` present (0/1 per line)
+- Submission copies under `outputs/stage5/submission/`

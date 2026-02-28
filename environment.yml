@@ -4,7 +4,14 @@ channels:
 dependencies:
   - python=3.11
   - pip
+  - numpy>=1.26
   - pandas>=2.2
+  - scikit-learn>=1.4
   - matplotlib>=3.8
   - seaborn>=0.13
   - requests>=2.32
+  - pytorch>=2.2
+  - transformers>=4.48
+  - accelerate>=1.0
+  - sentencepiece>=0.2
+  - protobuf>=4.25

@@ -1,0 +1,122 @@
+{
+  "data_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/data/raw",
+  "out_root": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4",
+  "selected_max_len": 192,
+  "seeds": [
+    42,
+    123,
+    2024,
+    3407,
+    777
+  ],
+  "run_variants": [
+    {
+      "variant_id": "b0_roberta",
+      "model_family": "b0_roberta",
+      "model": "roberta",
+      "loss": "ce",
+      "lex_drop": false,
+      "include_in_ensemble": false
+    },
+    {
+      "variant_id": "b1_roberta",
+      "model_family": "b1_roberta",
+      "model": "roberta",
+      "loss": "focal",
+      "lex_drop": false,
+      "include_in_ensemble": false
+    },
+    {
+      "variant_id": "roberta",
+      "model_family": "roberta_base",
+      "model": "roberta",
+      "loss": "focal",
+      "lex_drop": true,
+      "include_in_ensemble": true
+    },
+    {
+      "variant_id": "roberta_large",
+      "model_family": "roberta_large",
+      "model": "roberta_large",
+      "loss": "ce",
+      "lex_drop": false,
+      "include_in_ensemble": true
+    },
+    {
+      "variant_id": "deberta",
+      "model_family": "deberta_base",
+      "model": "deberta",
+      "loss": "focal",
+      "lex_drop": true,
+      "include_in_ensemble": true
+    }
+  ],
+  "all_run_ids": [
+    "b0_roberta_seed42",
+    "b0_roberta_seed123",
+    "b0_roberta_seed2024",
+    "b0_roberta_seed3407",
+    "b0_roberta_seed777",
+    "b1_roberta_seed42",
+    "b1_roberta_seed123",
+    "b1_roberta_seed2024",
+    "b1_roberta_seed3407",
+    "b1_roberta_seed777",
+    "roberta_seed42",
+    "roberta_seed123",
+    "roberta_seed2024",
+    "roberta_seed3407",
+    "roberta_seed777",
+    "roberta_large_seed42",
+    "roberta_large_seed123",
+    "roberta_large_seed2024",
+    "roberta_large_seed3407",
+    "roberta_large_seed777",
+    "deberta_seed42",
+    "deberta_seed123",
+    "deberta_seed2024",
+    "deberta_seed3407",
+    "deberta_seed777"
+  ],
+  "ensemble_run_ids": [
+    "roberta_seed42",
+    "roberta_seed123",
+    "roberta_seed2024",
+    "roberta_seed3407",
+    "roberta_seed777",
+    "roberta_large_seed42",
+    "roberta_large_seed123",
+    "roberta_large_seed2024",
+    "roberta_large_seed3407",
+    "roberta_large_seed777",
+    "deberta_seed42",
+    "deberta_seed123",
+    "deberta_seed2024",
+    "deberta_seed3407",
+    "deberta_seed777"
+  ],
+  "ablation_summary_csv": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/ablation_summary.csv",
+  "model_seed_statistics_csv": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/model_seed_statistics.csv",
+  "best_model_summary_json": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/best_model/best_model_summary.json",
+  "best_model": {
+    "best_run_id": "roberta_large_seed777",
+    "model_family": "roberta_large",
+    "model": "roberta_large",
+    "seed": 777,
+    "loss": "ce",
+    "lex_drop": false,
+    "dev_f1": 0.6288659793814433,
+    "dev_precision": 0.6455026455026455,
+    "dev_recall": 0.6130653266331658,
+    "threshold": 0.20500000000000013,
+    "degenerate_run": false,
+    "degenerate_reason": null,
+    "run_summary_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_large_seed777/run_summary.json",
+    "dev_txt_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/best_model/dev.txt",
+    "test_txt_path": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/best_model/test.txt",
+    "test_positive_predictions": 320,
+    "test_count": 3832
+  },
+  "final_ensemble_summary_json": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/final_ensemble/ensemble_summary.json",
+  "selected_runs_manifest_json": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/final_ensemble/selected_runs.json"
+}
