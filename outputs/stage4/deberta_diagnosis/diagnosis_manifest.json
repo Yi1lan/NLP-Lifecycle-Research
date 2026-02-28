@@ -1,0 +1,71 @@
+{
+  "data_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/data/raw",
+  "out_root": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/deberta_diagnosis",
+  "phase1_seed": 42,
+  "promote_seed": 2024,
+  "max_len": 192,
+  "epochs": 4,
+  "phase1_configs": [
+    {
+      "name": "deberta_ce_no_lexdrop",
+      "loss": "ce",
+      "lex_drop": false,
+      "lr": null,
+      "class_weight_scale": 1.0,
+      "force_fast_tokenizer": false
+    },
+    {
+      "name": "deberta_focal_no_lexdrop",
+      "loss": "focal",
+      "lex_drop": false,
+      "lr": null,
+      "class_weight_scale": 1.0,
+      "force_fast_tokenizer": false
+    },
+    {
+      "name": "deberta_focal_lexdrop",
+      "loss": "focal",
+      "lex_drop": true,
+      "lr": null,
+      "class_weight_scale": 1.0,
+      "force_fast_tokenizer": false
+    },
+    {
+      "name": "deberta_focal_lexdrop_fast_tokenizer",
+      "loss": "focal",
+      "lex_drop": true,
+      "lr": null,
+      "class_weight_scale": 1.0,
+      "force_fast_tokenizer": true
+    },
+    {
+      "name": "deberta_focal_lexdrop_lr8e6",
+      "loss": "focal",
+      "lex_drop": true,
+      "lr": 8e-06,
+      "class_weight_scale": 1.0,
+      "force_fast_tokenizer": false
+    },
+    {
+      "name": "deberta_focal_lexdrop_weight_half",
+      "loss": "focal",
+      "lex_drop": true,
+      "lr": null,
+      "class_weight_scale": 0.5,
+      "force_fast_tokenizer": false
+    }
+  ],
+  "phase1_run_ids": [
+    "deberta_ce_no_lexdrop_seed42",
+    "deberta_focal_no_lexdrop_seed42",
+    "deberta_focal_lexdrop_seed42",
+    "deberta_focal_lexdrop_fast_tokenizer_seed42",
+    "deberta_focal_lexdrop_lr8e6_seed42",
+    "deberta_focal_lexdrop_weight_half_seed42"
+  ],
+  "promoted_run_ids": [
+    "deberta_ce_no_lexdrop_seed2024",
+    "deberta_focal_no_lexdrop_seed2024"
+  ],
+  "summary_csv": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/deberta_diagnosis/diagnosis_summary.csv"
+}
