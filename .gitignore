@@ -206,13 +206,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# PDF 
-*.pdf
-
 # Coursework outputs
 data/raw/
 data/processed/
 
 .DS_Store
-*.ipynb
-nlp_coursework-master/
