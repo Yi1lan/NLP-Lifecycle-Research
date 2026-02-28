@@ -1,0 +1,83 @@
+{
+  "model_key": "roberta",
+  "model_name": "roberta-base",
+  "seed": 123,
+  "max_len": 192,
+  "loss": "focal",
+  "lex_drop": true,
+  "lex_drop_positive_only": true,
+  "lex_drop_prob": 0.2,
+  "trigger_tokens": [
+    "darkness",
+    "dole",
+    "teresa",
+    "hungry",
+    "christmas",
+    "compassion",
+    "blessings",
+    "donate",
+    "destitute",
+    "compassionate",
+    "ladder",
+    "producer",
+    "shell",
+    "token",
+    "touched",
+    "christ",
+    "hearts",
+    "beg",
+    "fortunate",
+    "sight"
+  ],
+  "epochs": 4,
+  "batch_size": 32,
+  "learning_rate": 2e-05,
+  "warmup_ratio": 0.1,
+  "weight_decay": 0.01,
+  "focal_gamma": 2.0,
+  "class_weight_scale": 1.0,
+  "tokenizer_mode": "fast",
+  "class_weights": [
+    0.5523677468299866,
+    5.273929595947266
+  ],
+  "train_size": 8375,
+  "dev_size": 2093,
+  "test_size": 3832,
+  "train_missing_ids": [],
+  "dev_missing_ids": [
+    "8640"
+  ],
+  "dev_order_hash": "7301b13ee1352258668724786c33fa22017b63d71748c62a59f758b8df3e1cbd",
+  "test_order_hash": "4d1229588a04a5b6a84f3f4c4f8d526e2d2e1ea94c8dec5db48312c02603403d",
+  "dev_metrics": {
+    "threshold": 0.5450000000000004,
+    "precision": 0.5690376569037657,
+    "recall": 0.6834170854271356,
+    "f1": 0.6210045662100456,
+    "tp": 136,
+    "tn": 1791,
+    "fp": 103,
+    "fn": 63
+  },
+  "dev_prob_std": 0.25655382180291475,
+  "dev_positive_rate_at_best_threshold": 0.11419015766841854,
+  "degenerate_run": false,
+  "degenerate_reason": null,
+  "health_criteria": {
+    "min_dev_f1": 0.4,
+    "min_dev_prob_std": 0.01,
+    "min_positive_rate": 0.02,
+    "max_positive_rate": 0.6
+  },
+  "best_checkpoint": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123/checkpoints/checkpoint-1048",
+  "paths": {
+    "run_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123",
+    "checkpoint_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123/checkpoints",
+    "model_dir": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123/model",
+    "dev_probs_npy": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123/dev_probs.npy",
+    "dev_labels_npy": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123/dev_labels.npy",
+    "dev_preds_npy": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123/dev_preds.npy",
+    "dev_preds_txt": "/rds/general/user/yw6822/home/NLP-Lifecycle-Research/outputs/stage4/runs/roberta_seed123/dev_preds.txt"
+  }
+}
