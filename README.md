@@ -1,168 +1,171 @@
 # NLP-Lifecycle-Research
 
-Stage-by-stage binary classification of Patronising and Condescending Language (PCL).
+Stage-by-stage binary classification for Patronising and Condescending Language (PCL), covering data preparation, model training, ensembling, submission generation, and local evaluation.
 
-## Stage 2 (Data Acquisition, Exploration, and Preprocessing)
+## 1) Key Reproducibility Artifacts
 
-Stage 2 includes:
+This section provides direct access to the primary artifacts used for academic review and reproducibility.
 
-- Data acquisition from the official sources
-- Preprocessing and binary-label normalization
-- EDA Technique 1: Class distribution
-- EDA Technique 2: Token-length profiling
-- EDA Technique 3: Lexical signal analysis (class-discriminative unigrams)
+### Final submission files
 
-## Repository Layout
+- Root `dev.txt`: [`dev.txt`](./dev.txt)
+- Root `test.txt`: [`test.txt`](./test.txt)
+- Submission copy (`outputs/stage5/submission/dev.txt`): [`outputs/stage5/submission/dev.txt`](./outputs/stage5/submission/dev.txt)
+- Submission copy (`outputs/stage5/submission/test.txt`): [`outputs/stage5/submission/test.txt`](./outputs/stage5/submission/test.txt)
+- Submission validation report: [`outputs/stage5/submission/validation_report.json`](./outputs/stage5/submission/validation_report.json)
 
-```
-NLP-Research-Lifecycle/
-├── environment.yml
-├── scripts/
-│   └── stage2_pipeline.py
-├── src/
-│   └── stage2/
-│       ├── __init__.py
-│       ├── acquisition.py
-│       ├── eda.py
-│       ├── preprocessing.py
-│       └── reporting.py
-└── data/
-    ├── raw/          # downloaded files
-    └── processed/    # cleaned/split files used for later stages
-```
+### BestModel package (for submission entrypoints/settings)
 
-## Stage 2 Run Instructions (Conda)
+- BestModel folder: [`BestModel/`](./BestModel)
+- BestModel entrypoint (`train`): [`BestModel/train.py`](./BestModel/train.py)
+- BestModel entrypoint (`predict`): [`BestModel/predict.py`](./BestModel/predict.py)
+- BestModel entrypoint (`ensemble`): [`BestModel/ensemble.py`](./BestModel/ensemble.py)
+- BestModel setting file: [`BestModel/config.json`](./BestModel/config.json)
+- BestModel package note: [`BestModel/README.md`](./BestModel/README.md)
 
-1. Create and activate the environment:
+### Best model and ensemble JSON artifacts
+
+- Best model JSON summary: [`outputs/stage4/best_model/best_model_summary.json`](./outputs/stage4/best_model/best_model_summary.json)
+- Best model `dev.txt`: [`outputs/stage4/best_model/dev.txt`](./outputs/stage4/best_model/dev.txt)
+- Best model `test.txt`: [`outputs/stage4/best_model/test.txt`](./outputs/stage4/best_model/test.txt)
+- Final ensemble JSON summary: [`outputs/stage4/final_ensemble/ensemble_summary.json`](./outputs/stage4/final_ensemble/ensemble_summary.json)
+- Final ensemble selected-runs JSON: [`outputs/stage4/final_ensemble/selected_runs.json`](./outputs/stage4/final_ensemble/selected_runs.json)
+- Stage 4 ablation summary: [`outputs/stage4/ablation_summary.csv`](./outputs/stage4/ablation_summary.csv)
+
+## 2) Summary Results of the Proposed Approach
+
+The following summary is taken from the final generated artifacts:
+[`outputs/stage4/final_ensemble/ensemble_summary.json`](./outputs/stage4/final_ensemble/ensemble_summary.json),
+[`outputs/stage4/best_model/best_model_summary.json`](./outputs/stage4/best_model/best_model_summary.json),
+[`outputs/stage4/run_matrix_summary.json`](./outputs/stage4/run_matrix_summary.json).
+
+| Item | Value |
+| --- | --- |
+| Final ensemble (dev) F1 | 0.6400 |
+| Final ensemble (dev) precision | 0.6368 |
+| Final ensemble (dev) recall | 0.6432 |
+| Final ensemble threshold | 0.4700 |
+| Selected ensemble runs | 10 / 15 |
+| Best single model ID | `roberta_large_seed777` |
+| Best single model (dev) F1 | 0.6289 |
+| Best single model threshold | 0.2050 |
+| Selected sequence length | 192 |
+| Ensemble predicted positives on test | 319 |
+
+Note: official test labels are not available in this repository, so official test F1 is not reported locally.
+
+## 3) How To Run The Whole Project
+
+Run from repository root.
+
+### 3.1 Environment setup
 
 ```bash
 conda env create -f environment.yml
 conda activate nlp-research-lifecycle
 ```
 
-2. Run Stage 2 pipeline:
+If DeBERTa tokenizer dependencies are missing in your environment:
 
 ```bash
-python scripts/stage2_pipeline.py
+python -m pip install -U protobuf
+python -m pip install -U tiktoken
 ```
 
-3. Inspect outputs:
-
-- Processed data: `data/processed/`
-- EDA tables: `outputs/stage2/tables/`
-- EDA figures: `outputs/stage2/figures/`
-- Report-ready summary: `outputs/stage2/stage2_summary.md`
-
-## Notes
-
-- This stage only implements data and EDA workflows.
-- No training is performed in Stage 2.
-
-## Stage 3-5 Pipeline (IARF)
-
-Stage 3-5 implementation is in `src/stage3/` and the orchestration scripts:
-
-- `scripts/stage4_run_matrix.py`
-- `scripts/stage4_deberta_diagnosis.py`
-- `scripts/stage5_make_submission.py`
-- `scripts/stage5_validate_submission.py`
-- `scripts/stage5_local_eval.py`
-- Submission package: `BestModel/`
-
-### Run Stage 4 Matrix (training + probs + ensemble)
+### 3.2 End-to-end pipeline
 
 ```bash
-python3 scripts/stage4_run_matrix.py \
+# Stage 2: data acquisition + preprocessing + EDA
+python scripts/stage2_pipeline.py
+
+# Stage 4: run training matrix and build ensemble outputs
+python scripts/stage4_run_matrix.py \
   --data-dir data/raw \
   --out-root outputs/stage4 \
   --seeds 42,123,2024,3407,777 \
   --skip-existing
+
+# Stage 5: create final submission files (also copies to root dev.txt/test.txt)
+python scripts/stage5_make_submission.py \
+  --ensemble-dir outputs/stage4/final_ensemble \
+  --out-dir outputs/stage5/submission \
+  --data-dir data/raw
+
+# Validate submission format/order
+python scripts/stage5_validate_submission.py \
+  --dev outputs/stage5/submission/dev.txt \
+  --test outputs/stage5/submission/test.txt \
+  --data-dir data/raw \
+  --ensemble-summary outputs/stage4/final_ensemble/ensemble_summary.json
+
+# Stage 5.2: local evaluation package
+python scripts/stage5_local_eval.py \
+  --data-dir data/raw \
+  --ensemble-summary outputs/stage4/final_ensemble/ensemble_summary.json \
+  --out-dir outputs/stage5/local_eval
 ```
 
-If running DeBERTa-v3 and tokenizer loading reports missing backend deps, install:
+Optional diagnostic experiment (failure analysis):
 
 ```bash
-python -m pip install -U protobuf
-```
-
-Some `transformers` builds may also require:
-
-```bash
-python -m pip install -U tiktoken
-```
-
-Key outputs:
-
-- Per-run checkpoints/metadata: `outputs/stage4/runs/`
-- Per-run probabilities: `outputs/stage4/probs/`
-- Final ensemble summary + `dev.txt`/`test.txt`: `outputs/stage4/final_ensemble/`
-- Run-selection manifest (health-filter based): `outputs/stage4/final_ensemble/selected_runs.json`
-- Run-level ablation table: `outputs/stage4/ablation_summary.csv`
-- Per-model seed statistics (max/mean/std): `outputs/stage4/model_seed_statistics.csv`
-- Best model (highest dev F1 over all runs): `outputs/stage4/best_model/best_model_summary.json`
-- Best-model predictions: `outputs/stage4/best_model/dev.txt`, `outputs/stage4/best_model/test.txt`
-
-Current default comparison families in the matrix:
-
-- `b0_roberta` (RoBERTa-base CE)
-- `b1_roberta` (RoBERTa-base focal)
-- `roberta` (RoBERTa-base focal + lexical dropout)
-- `roberta_large` (RoBERTa-large CE)
-- `deberta` (DeBERTa-v3-base focal + lexical dropout)
-
-### Focused DeBERTa Diagnosis Matrix (for failure analysis)
-
-```bash
-python3 scripts/stage4_deberta_diagnosis.py \
+python scripts/stage4_deberta_diagnosis.py \
   --data-dir data/raw \
   --out-root outputs/stage4/deberta_diagnosis \
   --promote-best-two \
   --include-weight-half
 ```
 
-This runs a compact diagnosis matrix across CE/focal, lexical-drop toggles, tokenizer mode,
-learning-rate adjustment, and class-weight scaling.
+## 4) Stage Descriptions
 
-### Create Stage 5 Submission Files
+### Stage 2: Data Acquisition, Preprocessing, and EDA
 
-```bash
-python3 scripts/stage5_make_submission.py \
-  --ensemble-dir outputs/stage4/final_ensemble \
-  --out-dir outputs/stage5/submission \
-  --data-dir data/raw
-```
+- Script: [`scripts/stage2_pipeline.py`](./scripts/stage2_pipeline.py)
+- Modules: [`src/stage2/`](./src/stage2)
+- What it does:
+  - Downloads/loads official Task 4 data
+  - Converts ordinal labels to binary labels (PCL vs non-PCL)
+  - Produces EDA tables/figures and stage summary
+- Main outputs:
+  - `outputs/stage2/tables/`
+  - `outputs/stage2/figures/`
+  - [`outputs/stage2/stage2_summary.md`](./outputs/stage2/stage2_summary.md)
 
-This writes:
+### Stage 3: Core Modeling Components
 
-- `outputs/stage5/submission/dev.txt`
-- `outputs/stage5/submission/test.txt`
-- Root-level `dev.txt` and `test.txt` for GTA visibility
+- Code location: [`src/stage3/`](./src/stage3)
+- Key modules:
+  - Training: [`src/stage3/train.py`](./src/stage3/train.py)
+  - Inference: [`src/stage3/predict.py`](./src/stage3/predict.py)
+  - Ensembling: [`src/stage3/ensemble.py`](./src/stage3/ensemble.py)
+  - Data/order handling: [`src/stage3/data.py`](./src/stage3/data.py)
+- Notes:
+  - Stage 3 provides reusable model components used by Stage 4 and Stage 5 scripts.
 
-### Validate Submission Format
+### Stage 4: Training Matrix, Run Selection, and Best Model
 
-```bash
-python3 scripts/stage5_validate_submission.py \
-  --dev outputs/stage5/submission/dev.txt \
-  --test outputs/stage5/submission/test.txt \
-  --data-dir data/raw \
-  --ensemble-summary outputs/stage4/final_ensemble/ensemble_summary.json
-```
+- Main script: [`scripts/stage4_run_matrix.py`](./scripts/stage4_run_matrix.py)
+- What it does:
+  - Runs multi-model, multi-seed training/inference matrix
+  - Applies health filtering for ensemble run selection
+  - Builds final ensemble predictions and metrics
+  - Exports single best-model artifact set
+- Main outputs:
+  - `outputs/stage4/runs/` (per-run models and run summaries)
+  - `outputs/stage4/probs/` (per-run dev/test probabilities)
+  - [`outputs/stage4/final_ensemble/ensemble_summary.json`](./outputs/stage4/final_ensemble/ensemble_summary.json)
+  - [`outputs/stage4/final_ensemble/selected_runs.json`](./outputs/stage4/final_ensemble/selected_runs.json)
+  - [`outputs/stage4/best_model/best_model_summary.json`](./outputs/stage4/best_model/best_model_summary.json)
 
-### Generate Stage 5.2 Local Evaluation Package
+### Stage 5: Submission Materialization, Validation, and Local Evaluation
 
-```bash
-python3 scripts/stage5_local_eval.py \
-  --data-dir data/raw \
-  --ensemble-summary outputs/stage4/final_ensemble/ensemble_summary.json \
-  --out-dir outputs/stage5/local_eval
-```
-
-Report-ready markdown is generated at:
-
-- `outputs/stage5/local_eval/stage5_local_eval.md`
-
-## Spec-facing Checklist
-
-- `BestModel/` present with train/predict/ensemble entrypoints
-- Root `dev.txt` and `test.txt` present (0/1 per line)
-- Submission copies under `outputs/stage5/submission/`
+- Submission builder: [`scripts/stage5_make_submission.py`](./scripts/stage5_make_submission.py)
+- Format/order validator: [`scripts/stage5_validate_submission.py`](./scripts/stage5_validate_submission.py)
+- Local evaluation package: [`scripts/stage5_local_eval.py`](./scripts/stage5_local_eval.py)
+- What it does:
+  - Writes final `dev.txt`/`test.txt` to `outputs/stage5/submission/` and root
+  - Validates line count, binary format, and ordering consistency
+  - Produces figures/tables/report for local error analysis
+- Main outputs:
+  - [`outputs/stage5/submission/submission_report.json`](./outputs/stage5/submission/submission_report.json)
+  - [`outputs/stage5/submission/validation_report.json`](./outputs/stage5/submission/validation_report.json)
+  - [`outputs/stage5/local_eval/stage5_local_eval.md`](./outputs/stage5/local_eval/stage5_local_eval.md)
