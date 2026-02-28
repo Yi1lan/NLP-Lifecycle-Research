@@ -55,6 +55,15 @@ MODELS: Dict[str, ModelSpec] = {
         # DeBERTa-v3 tokenization is typically safer with the slow tokenizer.
         use_slow_tokenizer=True,
     ),
+    "roberta_large": ModelSpec(
+        key="roberta_large",
+        name="roberta-large",
+        # Recommended stable defaults for A40 budget runs.
+        lr=1e-5,
+        batch_size=10,
+        max_len=256,
+        use_slow_tokenizer=False,
+    ),
 }
 
 

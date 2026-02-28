@@ -20,6 +20,7 @@ from .config import (
     DEFAULT_MIN_DEV_F1,
     DEFAULT_MIN_DEV_PROB_STD,
     DEFAULT_MIN_POSITIVE_RATE,
+    MODELS,
     THRESHOLD_END,
     THRESHOLD_START,
     THRESHOLD_STEP,
@@ -163,7 +164,7 @@ def smoke_train_step(seed: int = 123) -> float:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train one Stage 3 run.")
-    parser.add_argument("--model", required=True, choices=["roberta", "deberta"])
+    parser.add_argument("--model", required=True, choices=sorted(MODELS.keys()))
     parser.add_argument("--seed", required=True, type=int)
     parser.add_argument("--max-len", required=True, type=int)
     parser.add_argument("--loss", required=True, choices=["ce", "focal"])

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Orchestrate the balanced Stage 4 run matrix and final ensemble."""
+"""Orchestrate Stage 4 runs with multi-seed statistics and best-model selection."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import argparse
 import csv
 import json
 import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -18,6 +19,51 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.stage3.data import dev_labels, load_stage3_dataset  # pylint: disable=wrong-import-position
+
+
+RUN_VARIANTS = [
+    {
+        "variant_id": "b0_roberta",
+        "model_family": "b0_roberta",
+        "model": "roberta",
+        "loss": "ce",
+        "lex_drop": False,
+        "include_in_ensemble": False,
+    },
+    {
+        "variant_id": "b1_roberta",
+        "model_family": "b1_roberta",
+        "model": "roberta",
+        "loss": "focal",
+        "lex_drop": False,
+        "include_in_ensemble": False,
+    },
+    {
+        "variant_id": "roberta",
+        "model_family": "roberta_base",
+        "model": "roberta",
+        "loss": "focal",
+        "lex_drop": True,
+        "include_in_ensemble": True,
+    },
+    {
+        "variant_id": "roberta_large",
+        "model_family": "roberta_large",
+        "model": "roberta_large",
+        # Recommended stable default for first roberta-large sweep.
+        "loss": "ce",
+        "lex_drop": False,
+        "include_in_ensemble": True,
+    },
+    {
+        "variant_id": "deberta",
+        "model_family": "deberta_base",
+        "model": "deberta",
+        "loss": "focal",
+        "lex_drop": True,
+        "include_in_ensemble": True,
+    },
+]
 
 
 def _run(cmd: list[str], dry_run: bool = False) -> None:
@@ -34,6 +80,20 @@ def _read_run_summary(run_dir: Path) -> dict:
     return json.loads(summary_path.read_text(encoding="utf-8"))
 
 
+def _parse_seeds(seed_spec: str) -> list[int]:
+    seeds = []
+    for token in seed_spec.split(","):
+        value = token.strip()
+        if not value:
+            continue
+        seeds.append(int(value))
+    if not seeds:
+        raise ValueError("No seeds were provided.")
+    if len(set(seeds)) != len(seeds):
+        raise ValueError(f"Duplicate seeds are not allowed: {seeds}")
+    return seeds
+
+
 def _train_and_predict(
     *,
     run_id: str,
@@ -48,15 +108,12 @@ def _train_and_predict(
     epochs: int,
     skip_existing: bool,
     dry_run: bool,
-    lr: float | None = None,
-    class_weight_scale: float = 1.0,
-    force_fast_tokenizer: bool = False,
-    force_slow_tokenizer: bool = False,
 ) -> dict:
     run_dir = out_root / "runs" / run_id
     probs_dir = out_root / "probs"
     dev_probs = probs_dir / f"{run_id}_dev.npy"
     test_probs = probs_dir / f"{run_id}_test.npy"
+
     if (
         skip_existing
         and run_dir.joinpath("run_summary.json").exists()
@@ -96,14 +153,6 @@ def _train_and_predict(
         "--epochs",
         str(epochs),
     ]
-    if lr is not None:
-        train_cmd.extend(["--lr", str(lr)])
-    if class_weight_scale != 1.0:
-        train_cmd.extend(["--class-weight-scale", str(class_weight_scale)])
-    if force_fast_tokenizer:
-        train_cmd.append("--force-fast-tokenizer")
-    if force_slow_tokenizer:
-        train_cmd.append("--force-slow-tokenizer")
     _run(train_cmd, dry_run=dry_run)
 
     for split, output_path in [("dev", dev_probs), ("test", test_probs)]:
@@ -138,6 +187,128 @@ def _train_and_predict(
     }
 
 
+def _extract_row(variant: dict, seed: int, run_id: str, summary: dict) -> dict:
+    metrics = summary.get("dev_metrics", {})
+    return {
+        "run_id": run_id,
+        "variant_id": variant["variant_id"],
+        "model_family": variant["model_family"],
+        "model": variant["model"],
+        "seed": seed,
+        "loss": variant["loss"],
+        "lex_drop": variant["lex_drop"],
+        "dev_f1": metrics.get("f1"),
+        "dev_precision": metrics.get("precision"),
+        "dev_recall": metrics.get("recall"),
+        "threshold": metrics.get("threshold"),
+        "dev_prob_std": summary.get("dev_prob_std"),
+        "dev_positive_rate_at_best_threshold": summary.get("dev_positive_rate_at_best_threshold"),
+        "degenerate_run": summary.get("degenerate_run"),
+        "degenerate_reason": summary.get("degenerate_reason"),
+        "include_in_ensemble": variant["include_in_ensemble"],
+        "is_final_submission_candidate": variant["include_in_ensemble"],
+    }
+
+
+def _compute_model_seed_statistics(rows: list[dict]) -> list[dict]:
+    by_family: dict[str, list[dict]] = {}
+    for row in rows:
+        family = str(row["model_family"])
+        by_family.setdefault(family, []).append(row)
+
+    stats_rows = []
+    for family, family_rows in sorted(by_family.items()):
+        f1s = np.asarray([float(item["dev_f1"]) for item in family_rows], dtype=np.float64)
+        precisions = np.asarray([float(item["dev_precision"]) for item in family_rows], dtype=np.float64)
+        recalls = np.asarray([float(item["dev_recall"]) for item in family_rows], dtype=np.float64)
+        prob_stds = np.asarray(
+            [float(item["dev_prob_std"]) for item in family_rows], dtype=np.float64
+        )
+        pos_rates = np.asarray(
+            [float(item["dev_positive_rate_at_best_threshold"]) for item in family_rows],
+            dtype=np.float64,
+        )
+        best_row = max(
+            family_rows,
+            key=lambda item: (float(item["dev_f1"]), float(item["dev_precision"])),
+        )
+        std_ddof = 1 if len(f1s) > 1 else 0
+        stats_rows.append(
+            {
+                "model_family": family,
+                "n_seeds": int(len(family_rows)),
+                "seeds": ",".join(str(item["seed"]) for item in sorted(family_rows, key=lambda x: int(x["seed"]))),
+                "mean_dev_f1": float(np.mean(f1s)),
+                "std_dev_f1": float(np.std(f1s, ddof=std_ddof)),
+                "max_dev_f1": float(np.max(f1s)),
+                "best_seed": int(best_row["seed"]),
+                "best_run_id": str(best_row["run_id"]),
+                "mean_dev_precision": float(np.mean(precisions)),
+                "std_dev_precision": float(np.std(precisions, ddof=std_ddof)),
+                "mean_dev_recall": float(np.mean(recalls)),
+                "std_dev_recall": float(np.std(recalls, ddof=std_ddof)),
+                "mean_dev_prob_std": float(np.mean(prob_stds)),
+                "mean_dev_positive_rate": float(np.mean(pos_rates)),
+                "num_degenerate_runs": int(
+                    sum(bool(item.get("degenerate_run")) for item in family_rows)
+                ),
+            }
+        )
+    return stats_rows
+
+
+def _write_best_model_artifacts(out_root: Path, best_row: dict) -> dict:
+    run_id = str(best_row["run_id"])
+    run_dir = out_root / "runs" / run_id
+    run_summary = _read_run_summary(run_dir)
+    threshold = float(run_summary["dev_metrics"]["threshold"])
+
+    best_dir = out_root / "best_model"
+    best_dir.mkdir(parents=True, exist_ok=True)
+
+    # Dev predictions from training summary.
+    src_dev_txt = run_dir / "dev_preds.txt"
+    dst_dev_txt = best_dir / "dev.txt"
+    if not src_dev_txt.exists():
+        raise FileNotFoundError(f"Missing dev predictions for best run: {src_dev_txt}")
+    shutil.copyfile(src_dev_txt, dst_dev_txt)
+
+    # Threshold per-run test probabilities.
+    test_probs_path = out_root / "probs" / f"{run_id}_test.npy"
+    if not test_probs_path.exists():
+        raise FileNotFoundError(f"Missing test probabilities for best run: {test_probs_path}")
+    test_probs = np.asarray(np.load(test_probs_path), dtype=np.float64)
+    test_preds = (test_probs >= threshold).astype(np.int64)
+    dst_test_txt = best_dir / "test.txt"
+    with dst_test_txt.open("w", encoding="utf-8") as handle:
+        for value in test_preds:
+            handle.write(f"{int(value)}\n")
+
+    payload = {
+        "best_run_id": run_id,
+        "model_family": best_row["model_family"],
+        "model": best_row["model"],
+        "seed": int(best_row["seed"]),
+        "loss": best_row["loss"],
+        "lex_drop": bool(best_row["lex_drop"]),
+        "dev_f1": float(best_row["dev_f1"]),
+        "dev_precision": float(best_row["dev_precision"]),
+        "dev_recall": float(best_row["dev_recall"]),
+        "threshold": threshold,
+        "degenerate_run": bool(best_row.get("degenerate_run")),
+        "degenerate_reason": best_row.get("degenerate_reason"),
+        "run_summary_path": str(run_dir / "run_summary.json"),
+        "dev_txt_path": str(dst_dev_txt),
+        "test_txt_path": str(dst_test_txt),
+        "test_positive_predictions": int(test_preds.sum()),
+        "test_count": int(test_preds.shape[0]),
+    }
+    (best_dir / "best_model_summary.json").write_text(
+        json.dumps(payload, indent=2), encoding="utf-8"
+    )
+    return payload
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run Stage 4 matrix and build final ensemble.")
     parser.add_argument("--data-dir", type=str, default="data/raw")
@@ -145,6 +316,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--python-exe", type=str, default=sys.executable)
     parser.add_argument("--epochs", type=int, default=4)
     parser.add_argument("--probe-epochs", type=int, default=None)
+    parser.add_argument("--seeds", type=str, default="42,123,2024,3407,777")
     parser.add_argument("--skip-existing", action="store_true")
     parser.add_argument("--skip-max-len-probe", action="store_true")
     parser.add_argument("--force-max-len", type=int, default=None)
@@ -154,6 +326,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    seeds = _parse_seeds(args.seeds)
     data_dir = Path(args.data_dir).resolve()
     out_root = Path(args.out_root).resolve()
     out_root.mkdir(parents=True, exist_ok=True)
@@ -225,43 +398,36 @@ def main() -> None:
     elif chosen_max_len is None:
         chosen_max_len = 256
 
-    run_matrix = [
-        {"run_id": "b0_roberta_seed42", "model": "roberta", "seed": 42, "loss": "ce", "lex_drop": False},
-        {"run_id": "b1_roberta_seed42", "model": "roberta", "seed": 42, "loss": "focal", "lex_drop": False},
-        {"run_id": "roberta_seed42", "model": "roberta", "seed": 42, "loss": "focal", "lex_drop": True},
-        {"run_id": "roberta_seed2024", "model": "roberta", "seed": 2024, "loss": "focal", "lex_drop": True},
-        {"run_id": "deberta_seed42", "model": "deberta", "seed": 42, "loss": "focal", "lex_drop": True},
-        {"run_id": "deberta_seed2024", "model": "deberta", "seed": 2024, "loss": "focal", "lex_drop": True},
-    ]
+    rows: list[dict] = []
+    all_run_ids: list[str] = []
+    ensemble_run_ids: list[str] = []
 
-    results = []
-    for config in run_matrix:
-        result = _train_and_predict(
-            run_id=config["run_id"],
-            model=config["model"],
-            seed=config["seed"],
-            loss=config["loss"],
-            lex_drop=config["lex_drop"],
-            max_len=chosen_max_len,
-            data_dir=data_dir,
-            out_root=out_root,
-            python_exe=args.python_exe,
-            epochs=args.epochs,
-            skip_existing=args.skip_existing,
-            dry_run=args.dry_run,
-        )
-        results.append(result)
-
-    final_run_ids = [
-        "roberta_seed42",
-        "roberta_seed2024",
-        "deberta_seed42",
-        "deberta_seed2024",
-    ]
-    final_dev_probs = [str(out_root / "probs" / f"{run_id}_dev.npy") for run_id in final_run_ids]
-    final_test_probs = [str(out_root / "probs" / f"{run_id}_test.npy") for run_id in final_run_ids]
+    for variant in RUN_VARIANTS:
+        for seed in seeds:
+            run_id = f"{variant['variant_id']}_seed{seed}"
+            result = _train_and_predict(
+                run_id=run_id,
+                model=variant["model"],
+                seed=seed,
+                loss=variant["loss"],
+                lex_drop=variant["lex_drop"],
+                max_len=chosen_max_len,
+                data_dir=data_dir,
+                out_root=out_root,
+                python_exe=args.python_exe,
+                epochs=args.epochs,
+                skip_existing=args.skip_existing,
+                dry_run=args.dry_run,
+            )
+            all_run_ids.append(run_id)
+            if variant["include_in_ensemble"]:
+                ensemble_run_ids.append(run_id)
+            if not args.dry_run:
+                rows.append(_extract_row(variant, seed, run_id, result["summary"]))
 
     final_ensemble_dir = out_root / "final_ensemble"
+    final_dev_probs = [str(out_root / "probs" / f"{run_id}_dev.npy") for run_id in ensemble_run_ids]
+    final_test_probs = [str(out_root / "probs" / f"{run_id}_test.npy") for run_id in ensemble_run_ids]
     ensemble_cmd = [
         args.python_exe,
         "-m",
@@ -278,83 +444,46 @@ def main() -> None:
     _run(ensemble_cmd, dry_run=args.dry_run)
 
     if args.dry_run:
+        dry_payload = {
+            "data_dir": str(data_dir),
+            "out_root": str(out_root),
+            "selected_max_len": chosen_max_len,
+            "seeds": seeds,
+            "all_run_ids": all_run_ids,
+            "ensemble_run_ids": ensemble_run_ids,
+        }
+        print(json.dumps(dry_payload, indent=2))
         return
 
     ablation_csv_path = out_root / "ablation_summary.csv"
     with ablation_csv_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "run_id",
-                "model",
-                "seed",
-                "loss",
-                "lex_drop",
-                "dev_f1",
-                "dev_precision",
-                "dev_recall",
-                "threshold",
-                "dev_prob_std",
-                "dev_positive_rate_at_best_threshold",
-                "degenerate_run",
-                "degenerate_reason",
-                "is_final_submission_candidate",
-            ],
-        )
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
         writer.writeheader()
-        for item in run_matrix:
-            summary = _read_run_summary(out_root / "runs" / item["run_id"])
-            metrics = summary["dev_metrics"]
-            writer.writerow(
-                {
-                    "run_id": item["run_id"],
-                    "model": item["model"],
-                    "seed": item["seed"],
-                    "loss": item["loss"],
-                    "lex_drop": item["lex_drop"],
-                    "dev_f1": metrics["f1"],
-                    "dev_precision": metrics["precision"],
-                    "dev_recall": metrics["recall"],
-                    "threshold": metrics["threshold"],
-                    "dev_prob_std": summary.get("dev_prob_std"),
-                    "dev_positive_rate_at_best_threshold": summary.get(
-                        "dev_positive_rate_at_best_threshold"
-                    ),
-                    "degenerate_run": summary.get("degenerate_run"),
-                    "degenerate_reason": summary.get("degenerate_reason"),
-                    "is_final_submission_candidate": item["run_id"] in final_run_ids,
-                }
-            )
-        ensemble_summary = json.loads(
-            (final_ensemble_dir / "ensemble_summary.json").read_text(encoding="utf-8")
-        )
-        metrics = ensemble_summary["dev_metrics"]
-        writer.writerow(
-            {
-                "run_id": "final_ensemble",
-                "model": "roberta+deberta",
-                "seed": "42,2024",
-                "loss": "focal",
-                "lex_drop": True,
-                "dev_f1": metrics["f1"],
-                "dev_precision": metrics["precision"],
-                "dev_recall": metrics["recall"],
-                "threshold": metrics["threshold"],
-                "dev_prob_std": None,
-                "dev_positive_rate_at_best_threshold": None,
-                "degenerate_run": False,
-                "degenerate_reason": None,
-                "is_final_submission_candidate": True,
-            }
-        )
+        writer.writerows(rows)
+
+    stats_rows = _compute_model_seed_statistics(rows)
+    stats_csv_path = out_root / "model_seed_statistics.csv"
+    with stats_csv_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(stats_rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(stats_rows)
+
+    best_row = max(rows, key=lambda item: (float(item["dev_f1"]), float(item["dev_precision"])))
+    best_model_payload = _write_best_model_artifacts(out_root, best_row)
+    best_model_summary_path = out_root / "best_model" / "best_model_summary.json"
 
     matrix_summary = {
         "data_dir": str(data_dir),
         "out_root": str(out_root),
         "selected_max_len": chosen_max_len,
-        "run_ids": [item["run_id"] for item in run_matrix],
-        "final_run_ids": final_run_ids,
+        "seeds": seeds,
+        "run_variants": RUN_VARIANTS,
+        "all_run_ids": all_run_ids,
+        "ensemble_run_ids": ensemble_run_ids,
         "ablation_summary_csv": str(ablation_csv_path),
+        "model_seed_statistics_csv": str(stats_csv_path),
+        "best_model_summary_json": str(best_model_summary_path),
+        "best_model": best_model_payload,
         "final_ensemble_summary_json": str(final_ensemble_dir / "ensemble_summary.json"),
         "selected_runs_manifest_json": str(final_ensemble_dir / "selected_runs.json"),
     }

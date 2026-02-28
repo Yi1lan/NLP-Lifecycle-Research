@@ -1,8 +1,0 @@
-{
-  "probe_epochs": 4,
-  "dev_f1_len192": 0.6219239373601789,
-  "dev_f1_len256": 0.6077922077922077,
-  "drop_len256_minus_len192": -0.014131729567971263,
-  "rule": "choose_192_if_drop<=0.005_else_256",
-  "selected_max_len": 192
-}

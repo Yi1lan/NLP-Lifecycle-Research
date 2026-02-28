@@ -17,6 +17,7 @@ Run from repo root.
 python3 scripts/stage4_run_matrix.py \
   --data-dir data/raw \
   --out-root outputs/stage4 \
+  --seeds 42,123,2024,3407,777 \
   --skip-existing
 ```
 
@@ -48,4 +49,13 @@ Outputs:
 
 - `outputs/stage4/deberta_diagnosis/diagnosis_summary.csv`
 - `outputs/stage4/deberta_diagnosis/diagnosis_manifest.json`
+- `outputs/stage4/model_seed_statistics.csv` (max/mean/std per model family)
+- `outputs/stage4/best_model/best_model_summary.json` (best model + best seed)
 
+Default matrix families include:
+
+- `b0_roberta` (RoBERTa-base CE)
+- `b1_roberta` (RoBERTa-base focal)
+- `roberta` (RoBERTa-base focal + lexical dropout)
+- `roberta_large` (RoBERTa-large CE)
+- `deberta` (DeBERTa-v3-base focal + lexical dropout)

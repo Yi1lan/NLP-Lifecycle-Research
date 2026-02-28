@@ -75,6 +75,7 @@ Stage 3-5 implementation is in `src/stage3/` and the orchestration scripts:
 python3 scripts/stage4_run_matrix.py \
   --data-dir data/raw \
   --out-root outputs/stage4 \
+  --seeds 42,123,2024,3407,777 \
   --skip-existing
 ```
 
@@ -96,7 +97,18 @@ Key outputs:
 - Per-run probabilities: `outputs/stage4/probs/`
 - Final ensemble summary + `dev.txt`/`test.txt`: `outputs/stage4/final_ensemble/`
 - Run-selection manifest (health-filter based): `outputs/stage4/final_ensemble/selected_runs.json`
-- Ablation table: `outputs/stage4/ablation_summary.csv`
+- Run-level ablation table: `outputs/stage4/ablation_summary.csv`
+- Per-model seed statistics (max/mean/std): `outputs/stage4/model_seed_statistics.csv`
+- Best model (highest dev F1 over all runs): `outputs/stage4/best_model/best_model_summary.json`
+- Best-model predictions: `outputs/stage4/best_model/dev.txt`, `outputs/stage4/best_model/test.txt`
+
+Current default comparison families in the matrix:
+
+- `b0_roberta` (RoBERTa-base CE)
+- `b1_roberta` (RoBERTa-base focal)
+- `roberta` (RoBERTa-base focal + lexical dropout)
+- `roberta_large` (RoBERTa-large CE)
+- `deberta` (DeBERTa-v3-base focal + lexical dropout)
 
 ### Focused DeBERTa Diagnosis Matrix (for failure analysis)
 
