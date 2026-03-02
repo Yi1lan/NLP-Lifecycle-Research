@@ -51,6 +51,19 @@ The following summary is taken from the final generated artifacts:
 [`outputs/stage4/best_model/best_model_summary.json`](./outputs/stage4/best_model/best_model_summary.json),
 [`outputs/stage4/run_matrix_summary.json`](./outputs/stage4/run_matrix_summary.json).
 
+### Stage 3 Novelty to BestModel Code Mapping
+
+The Stage 3 proposed method in the report (IARF) is implemented in `BestModel` as follows:
+
+- Imbalance-aware objective (class-weighted focal loss, `gamma=2.0`): [`BestModel/train.py`](./BestModel/train.py) + [`BestModel/losses.py`](./BestModel/losses.py)
+  - `compute_balanced_class_weights(...)` + `WeightedFocalLoss(...)` are used when `--loss focal`.
+- Lexical-robust augmentation (trigger-token dropout on positive samples): [`BestModel/train.py`](./BestModel/train.py) + [`BestModel/augment.py`](./BestModel/augment.py)
+  - Trigger tokens come from Stage 2 lexical analysis; default dropout probability is `0.2`.
+- Dev-threshold optimization for positive-class F1: [`BestModel/train.py`](./BestModel/train.py), [`BestModel/ensemble.py`](./BestModel/ensemble.py), [`BestModel/losses.py`](./BestModel/losses.py)
+  - `search_best_threshold(...)` sweeps `0.05 -> 0.95` (step `0.005`) instead of fixed threshold `0.5`.
+- Probability-level ensemble with health filtering + auditability: [`BestModel/ensemble.py`](./BestModel/ensemble.py)
+  - Run health checks (`dev_f1`, `dev_prob_std`, positive rate bounds), probability averaging, and manifest export in `selected_runs.json`.
+
 | Item | Value |
 | --- | --- |
 | Final ensemble (dev) F1 | 0.6400 |

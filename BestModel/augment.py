@@ -96,6 +96,8 @@ def apply_lexical_dropout(
     rng = random.Random(seed)
     output: list[str] = []
     for text, label in zip(texts, labels):
+        # Stage 3 novelty (IARF): apply trigger-token dropout to positives by default
+        # so the model relies less on lexical shortcuts and more on context/tone.
         if positive_only and int(label) != 1:
             output.append(text)
             continue
@@ -117,4 +119,3 @@ def contains_trigger_token(text: str, trigger_tokens: Iterable[str]) -> bool:
         if _normalize_token(token) in trigger_set:
             return True
     return False
-

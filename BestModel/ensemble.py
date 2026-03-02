@@ -114,6 +114,8 @@ def _run_health(
         end=threshold_end,
         step=threshold_step,
     )
+    # Evaluate each candidate run at its own best dev threshold (F1-optimized),
+    # then use these stats for pre-ensemble health filtering.
     best_metrics = binary_metrics_from_probs(dev_probs, dev_labels, threshold=best.threshold)
     positive_rate = float(np.mean((dev_probs >= best.threshold).astype(np.float64)))
     prob_std = float(np.std(dev_probs))
@@ -136,6 +138,8 @@ def _is_run_eligible(
     max_positive_rate: float,
 ) -> tuple[bool, list[str]]:
     reasons: list[str] = []
+    # Stage 3 novelty (IARF): audit-friendly health gates to exclude unstable runs
+    # before probability averaging.
     if run_health["dev_f1"] < min_dev_f1:
         reasons.append(f"dev_f1<{min_dev_f1:.2f}")
     if run_health["dev_prob_std"] < min_dev_prob_std:
@@ -210,6 +214,7 @@ def main() -> None:
     excluded_run_ids: list[str] = []
     manifest_rows: list[dict] = []
     for run_id in run_ids:
+        # Compute run-level health + keep explicit include/exclude reasons for auditing.
         run_health = _run_health(
             dev_probs=dev_map[run_id]["probs"],
             dev_labels=dev_labels,
@@ -255,11 +260,13 @@ def main() -> None:
     if not selected_run_ids:
         raise ValueError("No runs passed health filtering. Relax thresholds or disable filtering.")
 
+    # Stage 3 novelty (IARF): probability-level ensemble over healthy runs.
     selected_dev_probs = np.vstack([dev_map[run_id]["probs"] for run_id in selected_run_ids])
     selected_test_probs = np.vstack([test_map[run_id]["probs"] for run_id in selected_run_ids])
     dev_probs = np.mean(selected_dev_probs, axis=0)
     test_probs = np.mean(selected_test_probs, axis=0)
 
+    # Final operating threshold is selected on ensemble dev probabilities via F1 sweep.
     best = search_best_threshold(
         probs=dev_probs,
         labels=dev_labels,
@@ -290,6 +297,7 @@ def main() -> None:
         "max_positive_rate": args.max_positive_rate,
         "disable_health_filtering": args.disable_health_filtering,
     }
+    # Persist a full manifest so the selected subset can be traced back run-by-run.
     selected_manifest_path = out_dir / "selected_runs.json"
     selected_manifest = {
         "criteria": criteria,
@@ -347,4 +355,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

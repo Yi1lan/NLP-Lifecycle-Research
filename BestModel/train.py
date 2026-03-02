@@ -110,6 +110,8 @@ def _build_compute_metrics(
     def _compute_metrics(eval_pred) -> dict[str, float]:
         logits, labels = eval_pred
         probs = _softmax_positive(np.asarray(logits, dtype=np.float64))
+        # Stage 3 novelty (IARF): tune the operating threshold on dev to maximize
+        # positive-class F1 instead of fixing it at 0.5.
         result = search_best_threshold(
             probs=probs,
             labels=np.asarray(labels, dtype=np.int64),
@@ -227,6 +229,8 @@ def main() -> None:
 
     trigger_tokens: list[str] = []
     if lex_drop_enabled:
+        # Stage 3 novelty (IARF): lexical-robust augmentation.
+        # We drop PCL-indicative trigger tokens (default p=0.2) to reduce shortcut learning.
         trigger_tokens = load_trigger_tokens(args.lexical_csv, top_k=20)
         train_texts = apply_lexical_dropout(
             texts=train_texts,
@@ -294,6 +298,8 @@ def main() -> None:
         end=THRESHOLD_END,
         step=THRESHOLD_STEP,
     )
+    # Stage 3 novelty (IARF): imbalance-aware objective via inverse-frequency class weights;
+    # focal loss branch applies gamma=2.0 by default.
     class_weights = compute_balanced_class_weights(train_labels) * float(args.class_weight_scale)
     if args.loss == "focal":
         focal_trainer_cls = _make_focal_trainer_class(Trainer)
@@ -317,6 +323,7 @@ def main() -> None:
     trainer.train()
     dev_predictions = trainer.predict(dev_dataset)
     dev_probs = _softmax_positive(np.asarray(dev_predictions.predictions, dtype=np.float64))
+    # Stage 3 novelty (IARF): final per-run threshold selection on dev using F1 sweep.
     best_metrics = search_best_threshold(
         probs=dev_probs,
         labels=np.asarray(dev_labels, dtype=np.int64),
@@ -333,6 +340,8 @@ def main() -> None:
     dev_positive_rate_at_best_threshold = float(
         np.mean((dev_probs >= best_metrics.threshold).astype(np.float64))
     )
+    # Health diagnostics are consumed by BestModel.ensemble to filter degenerate runs
+    # before probability averaging.
     degeneracy_reasons: list[str] = []
     if dev_metric_details.f1 < DEFAULT_MIN_DEV_F1:
         degeneracy_reasons.append(
