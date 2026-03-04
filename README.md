@@ -10,9 +10,6 @@ This section provides direct access to the primary artifacts used for academic r
 
 - Root `dev.txt`: [`dev.txt`](./dev.txt)
 - Root `test.txt`: [`test.txt`](./test.txt)
-- Submission copy (`outputs/stage5/submission/dev.txt`): [`outputs/stage5/submission/dev.txt`](./outputs/stage5/submission/dev.txt)
-- Submission copy (`outputs/stage5/submission/test.txt`): [`outputs/stage5/submission/test.txt`](./outputs/stage5/submission/test.txt)
-- Submission validation report: [`outputs/stage5/submission/validation_report.json`](./outputs/stage5/submission/validation_report.json)
 
 ### BestModel package (full proposal pipeline)
 
@@ -35,11 +32,9 @@ This section provides direct access to the primary artifacts used for academic r
   [`BestModel/test.txt`](./BestModel/test.txt)
 - Checkpoint storage note: large model checkpoints are stored under `outputs/stage4/runs/` and are not duplicated inside `BestModel`.
 
-### Best model and ensemble JSON artifacts
+### Best model (single model without ensemble) and ensemble JSON artifacts
 
 - Best model JSON summary: [`outputs/stage4/best_model/best_model_summary.json`](./outputs/stage4/best_model/best_model_summary.json)
-- Best model `dev.txt`: [`outputs/stage4/best_model/dev.txt`](./outputs/stage4/best_model/dev.txt)
-- Best model `test.txt`: [`outputs/stage4/best_model/test.txt`](./outputs/stage4/best_model/test.txt)
 - Final ensemble JSON summary: [`outputs/stage4/final_ensemble/ensemble_summary.json`](./outputs/stage4/final_ensemble/ensemble_summary.json)
 - Final ensemble selected-runs JSON: [`outputs/stage4/final_ensemble/selected_runs.json`](./outputs/stage4/final_ensemble/selected_runs.json)
 - Stage 4 ablation summary: [`outputs/stage4/ablation_summary.csv`](./outputs/stage4/ablation_summary.csv)
